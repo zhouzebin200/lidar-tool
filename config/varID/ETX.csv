@@ -1,0 +1,117 @@
+GroupID,Index,Get,Set,GroupName,VarName,VarLen,VarType,Description,IntegrityCheck,Permission,DefaultValue,CurrentValue,Options,OptionDescription,Must,Unit,Coefficient,SetCoefficient,FunctionModule,SetIndex,TimerUpdate
+0,Lidar Info,Lidar Info,,,,,,,,,,,,,,,,,,,
+0,Network,Source,Destination,,,,,,,,,,,,,,,,,,
+0,Lidar Function,Lidar Function,,,,,,,,,,,,,,,,,,,
+0,Time Sync,Time Sync,,,,,,,,,,,,,,,,,,,
+0,Operation Statistics,Climate,Availability,Mechanical,,,,,,,,,,,,,,,,,
+0,Upgrade,Upgrade,,,,,,,,,,,,,,,,,,,
+1,0,0x07,,,SN,18,string,Serial number,,0,xxxxxx,xxxxxx,,,1,,,,1_1_1_1,,
+1,1,0x07,,,PN,32,string,Hesai Part Number,,0,xxxxxx,xxxxxx,,,,,,,1_1_2_1,,
+1,2,0x07,,,Date of Manufacture,16,string,Date of manufacture in ASCII(yyyy-mm-dd),,0,xxxxxx,xxxxxx,,,1,,,,,,
+1,3,0x07,,,MAC Address,6,MAC,"MAC address
+Each byte corresponds to two hexadecimal digits.",,0,xx:xx:xx:xx:xx,xx:xx:xx:xx:xx,,,1,,,,2_1_5_1,,
+1,4,0x07,,,Software Version,16,string,"Software version, in ASCII(xx.xx.xx)",,0,xxxxxx,xxxxxx,,,1,,,,6_1_1_1|1_1_3_1,,
+1,5,0x07,,,Hardware Version,16,string,"Hardware version, in ASCII",,1,,,,,1,,,,,,
+1,6,0x07,,,Firmware Version,16,HWVER,"Controller firmware version, in ASCII",,0,xxxxxx,xxxxxx,,,1,,,,6_1_2_1|1_1_4_1,,
+1,7,0x07,,,SHA Value Of Controller Firmware,16,string,"SHA value of controller firmware
+Only the first 4 bytes are used.
+E.g., when the bytes stream in 00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF, the 
+SHA value of controller firmware will be 00112233",,1,,,,,,,,,,,
+1,8,0x07,,,FPGA Parameters Version,16,string,FPGA parameters version,,1,,,,,,,,,,,
+1,9,0x07,,,FPGA Configuration Version,16,string,FPGA configuration version,,1,,,,,,,,,,,
+1,10,0x07,,,SHA value of FPGA Parameters,16,string,SHA value of FPGA parameters,,1,,,,,,,,,,,
+1,11,0x07,,,SHA value of FPGA Configuration,16,string,SHA value of FPGA configuration,,1,,,,,,,,,,,
+1,12,0x07,,,Angle Offset,2,uint16,Not Used,,,,,,,,,,,,,
+1,13,0x07,,,Model Code,1,uint8,Product model (not yet supported),,0,,,,,,,,,,,
+1,14,0x07,,,Motor Type,1,uint8,Motor type (not yet supported),,,,,,,,,,,,,
+1,15,0x07,,,Num of Channels,1,uint8,Number of channels,,1,128,,,,,,,,,,
+1,16,0x07,,,Motor Correction Flag,1,uint8,"Motor corretion flag
+0 — Motor correction not finished
+1 — Motor correction finished",,1,,,,,,,,,,,
+1,17,0x07,,,Encoder Disk Correction Flag,1,uint8,"Encoder disk correction flag
+0——Encoder disk correction not finished
+1——Encoder disk correction finished",,1,,,,,,,,,,,
+1,18,0x07,,,Reserved,9,raw,Reserved,,,,,,,,,,,,,
+2,0,0x08,0x21,,Source IPv4 Address,4,IP,IP address of the device,,1,xxx.xxx.xxx.xxx,xxx.xxx.xxx.xxx,,,1,,,,2_1_1_1,1,
+2,1,0x08,0x21,,IPv4 Mask,4,IP,Subnet mask of the device,,1,xxx.xxx.xxx.xxx,xxx.xxx.xxx.xxx,,,1,,,,2_1_2_1,2,
+2,2,0x08,0x21,,IPv4 Gateway,4,IP,Gateway of the device,,1,xxx.xxx.xxx.xxx,xxx.xxx.xxx.xxx,,,1,,,,2_1_3_1,3,
+2,3,0x08,0x20,,Destination IPv4 Address,4,IP,Destination IP address of point cloud data packets,,1,xxx.xxx.xxx.xxx,xxx.xxx.xxx.xxx,,,1,,,,2_2_1_1,1,
+2,4,0x08,0x20,,UDP Port,2,uint16,Destination UDP port of point could data packets ,,1,xxxxxx,xxxxxx,,,1,,,,2_2_2_1,2,
+2,5,0x08,0x20,,Destination GPS UDP Address,2,uint16,"Destination UDP port of GPS data packets
+Valid only when the ""Clock Source"" is ""GPS""",,0,10110,10110,,,1,,,,,3,
+2,6,0x08,,,Spin Rate,2,uint16,Spin rate of the motor,,1,200,,200|400,"200 _ 200 rpm
+400 _ 400 rpm",,RPM,1,,,1,
+2,7,0x08,0x18,,Sync Enable,1,uint8,"Status of sync angle (phase lock)
+0 - Disable  1 - Enable",,1,0,,0|1,,1,,,,3_1_100_2_2,1,
+2,8,0x08,0x18,,Sync Angle,2,uint16,Sync angle value,,1,0,0,0~359,,1,°,0.001,0.001,3_1_2_2,2,
+2,9,0x08,,,Start Angle,2,uint16,Not used,,,,,,,1,,,,,,
+2,10,0x08,,,Stop Angle,2,uint16,Not used,,,,,,,1,,,,,,
+2,11,0x08,,,Clock Source,1,uint8,"Clock source
+1—PTP",,0,1,1,1,,1,,,,,,
+2,12,0x08,,,UDP Sequence,1,uint8,"UDP sequence number
+0 – UDP sequence OFF
+1 – UDP sequence ON(default)",,1,1,1,,,1,,,,,,
+2,13,0x08,0x1B,,Trigger Method,1,uint8,"Trigger method
+0 — Angle based 
+1—Time based",,1,0,0,0|1|2,"0 _ Angle-based
+1 _ Time-based
+2 _ Internal-Trig",1,,,,3_1_3_3,1,
+2,14,0x08,0x1E,,Return Mode,1,uint8,"Return mode
+0 — Last
+1 — Strongest
+2 — Last + Strongest
+3 — First
+4 - Last and First Return
+5 - First and Strongest Return",,1,2,2,0|1|2|3|4|5,"0 _ Last Return
+1 _ Strongest Return
+2 _ Last + Strongest Return
+3 _ First Return
+4 _ Last + First Return
+5 _ First + Strongest Return",1,,,,3_1_1_3,1,
+2,15,0x08,0x1C,,Standby Mode,1,uint8,"Standy model
+0—In Operation 
+1—Standby",,1,0,0,0|1|2,"0 _ In Operation
+1 _ Standby
+2 _ Low Power",1,,,,3_1_4_3,1,
+2,16,0x08,,,Rotation Direction,1,uint8,"Motor type and status
+0x0*—cannot reverse the rotation direction
+0x1*—supports reversing the rotation direction
+0x*0—currently rotating clockwise
+0x*1—currently rotating counterclockwise",,1,0,0,0|1,"0 _ Clockwise
+1 _ Counterclockwise",1,,,,,1,
+2,17,0x08,0x21,,VLAN,1,uint8,"Flag for VLAN tagging
+0—VLAN Not in use
+1—VLAN In use",,1,0,0,0|1,,1,,,,2_1_100_2_4,4,
+2,18,0x08,0x21,,VLAN ID,2,uint16,VLAN ID,,1,0,0,1~4094,,1,,,,2_1_4_2,5,
+2,19,0x08,,,GPS NMEA Sentence ,1,uint8,GPS NAME sentence(Not used),,,,,,,1,,,,,,
+2,20,0x08,,,Noise Filtering,1,uint8,Noise Filtering(Not used),,,,,,,1,,,,,,
+2,21,0x08,,,Reflectivity Mapping,1,uint8,Reflectivity mapping(Not used),,1,0,,0|1,"0 _ Linear Mapping
+1 _ Nonlinear Mapping",1,,,,,1,
+2,22,0x08,,,Reserved,6,raw,Resrved,,0,,,,,,,,,,,
+3,0,0x09,,,System Uptime ,4,DT,System uptime,,0,xxxxxx,xxxxxx,,,1,,1,,5_2_2_1,,1
+3,1,0x09,,,Motor Speed ,2,uint16,Real-time motor speed,,0,xxxxxx,xxxxxx,,,1,RPM,1,,5_3_1_1,,
+3,2,0x09,,,int32[0],4,uint32,,,0,xxxxxx,xxxxxx,,,1,°C,0.01,,,,
+3,3,0x09,,,int32[1],4,uint32,,,0,xxxxxx,xxxxxx,,,1,°C,0.01,,,,
+3,4,0x09,,,int32[2],4,uint32,,,0,xxxxxx,xxxxxx,,,1,°C,0.01,,,,
+3,5,0x09,,,int32[3],4,uint32,,,0,xxxxxx,xxxxxx,,,1,°C,0.01,,,,
+3,6,0x09,,,Internal Temperature,4,uint32,,,0,xxxxxx,xxxxxx,,,1,°C,0.01,,5_1_1_1,,1
+3,7,0x09,,,int32[5],4,uint32,,,0,xxxxxx,xxxxxx,,,1,°C,0.01,,,,
+3,8,0x09,,,int32[6],4,uint32,,,0,xxxxxx,xxxxxx,,,1,°C,0.01,,,,
+3,9,0x09,,,int32[7],4,uint32,,,0,xxxxxx,xxxxxx,,,1,°C,0.01,,,,
+3,10,0x09,,,int32[8],4,uint32,,,0,xxxxxx,xxxxxx,,,1,°C,0.01,,,,
+3,11,0x09,,,GPS PPS Lock,1,uint8,GPS PPS status(Not used),,,,,,,1,,,,,,
+3,12,0x09,,,GPS NMEA Status,1,uint8,GPS NMEA status(Not used),,,,,,,1,,,,,,
+3,13,0x09,,,Start-Up Times,4,uint32,System start-up times,,0,xxxxxx,xxxxxx,,,1,,,,5_2_1_1,,1
+3,14,0x09,,,Total Operation Time ,4,DT,Total time in operation,,0,xxxxxx,xxxxxx,,,1,,1,,5_2_3_1,,1
+3,15,0x09,,,PTP Status,1,uint8,"PTP status
+0 — free run
+1 — tracking
+2 — locked
+3 — frozen",,0,0,0,0|8|24|40|9,"0 _ free run
+24 _ tracking
+40 _ tracking
+8 _ locked
+9 _ frozen",0,,,,4_1_1_3,,1
+3,16,0x09,,,Reserved,5,raw,Reserved,,1,,,,,,,,,,,
+9,0,,0x10,,Restart,,,Restart,,2,,,,,1,,,,,,
+23,0,,0x83,,Attach File,,,This item is used to specify the command to be used for the lidar upgrade,,,,,,,,,,,6_1_3_4,1,

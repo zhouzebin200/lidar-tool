@@ -1,0 +1,16 @@
+Universal LiDAR Viewer 一机一码授权版
+=====================================
+
+1. 首次双击 UniversalLidarViewer-Licensed.exe。
+2. 程序会显示本机机器码，并在同目录生成 machine-code.txt。
+3. 把机器码发给许可证管理员。
+4. 将管理员返回的 license.key 放到 EXE 同目录。
+5. 再次双击即可运行；许可证验证完全离线，不访问互联网。
+
+命令行辅助：
+  UniversalLidarViewer-Licensed.exe --machine-code
+  UniversalLidarViewer-Licensed.exe --license-status
+  UniversalLidarViewer-Licensed.exe --install-license D:\path\license.key
+
+许可证绑定 Windows MachineGuid 与系统卷序列号。重装系统或更换系统盘后，
+机器码可能变化，需要重新签发。普通版不受许可证影响。

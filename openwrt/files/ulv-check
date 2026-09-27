@@ -1,0 +1,31 @@
+#!/bin/sh
+
+echo "== Board =="
+ubus call system board 2>/dev/null || true
+echo "== Architecture =="
+uname -m
+opkg print-architecture 2>/dev/null || true
+echo "== Memory =="
+free -m
+echo "== Storage =="
+df -h
+echo "== Dependencies =="
+for command in python3 ptp4l phc2sys; do
+    if command -v "$command" >/dev/null 2>&1; then
+        echo "$command: OK ($(command -v "$command"))"
+    else
+        echo "$command: MISSING"
+    fi
+done
+if [ -r /proc/mounts ]; then
+    echo "== External mounts =="
+    awk '$1 ~ /^\/dev\/(sd|mmcblk|nvme)/ || $2 ~ /^\/(mnt|media)\// { print }' /proc/mounts
+fi
+echo "== Network/PTP =="
+for interface in /sys/class/net/*; do
+    name="${interface##*/}"
+    [ "$name" = "lo" ] && continue
+    state="$(cat "$interface/operstate" 2>/dev/null)"
+    phc="$(ls "$interface/device/ptp" 2>/dev/null | head -n 1)"
+    echo "$name: state=${state:-unknown} phc=${phc:-none}"
+done

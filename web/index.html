@@ -1,0 +1,267 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#242424">
+  <title>砺见智行工作室激光雷达测试工具</title>
+  <link rel="stylesheet" href="/style.css">
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <div class="brand-mark"><span></span><span></span><span></span></div>
+      <div>
+        <h1>砺见智行工作室</h1>
+        <p>激光雷达测试工具</p>
+      </div>
+    </div>
+    <div class="top-stats">
+      <div class="stat"><span>POINTS</span><strong id="pointCount">0</strong></div>
+      <div class="stat"><span>FPS</span><strong id="fps">0</strong></div>
+      <div class="stat"><span>FRAME AGE</span><strong id="frameAge">—</strong></div>
+      <div id="socketState" class="connection"><i></i> CONNECTING</div>
+    </div>
+  </header>
+
+  <nav class="main-tabs" aria-label="功能导航">
+    <button class="control-tab" id="openReportStudio">检测报告</button>
+    <button class="control-tab active" data-control-tab="render">点云显示</button>
+    <button class="control-tab" data-control-tab="network">网络设置</button>
+    <button class="control-tab" data-control-tab="ptp">PTP设置</button>
+    <button class="control-tab" data-control-tab="support">支持型号说明</button>
+  </nav>
+
+  <main class="workspace">
+    <aside class="panel devices-panel">
+      <div class="panel-title">
+        <div><span class="eyebrow">INPUT</span><h2>设备</h2></div>
+        <span id="deviceCount" class="counter">0</span>
+      </div>
+      <div id="deviceList" class="device-list"></div>
+      <div class="panel-section network-section">
+        <span class="eyebrow">DATA INPUT</span>
+        <div id="listenerList" class="listener-list"></div>
+      </div>
+    </aside>
+
+    <section class="viewport-wrap">
+      <canvas id="pointCloud"></canvas>
+      <div class="viewport-overlay top-left">
+        <span class="live-chip"><i></i> LIVE</span>
+        <span id="activeModel">等待点云</span>
+      </div>
+      <div class="viewport-overlay bottom-left help">
+        左键旋转&nbsp;&nbsp;·&nbsp;&nbsp;滚轮缩放&nbsp;&nbsp;·&nbsp;&nbsp;双击复位
+      </div>
+      <div class="viewport-overlay bottom-right axis-label">
+        <span class="axis-x">X</span><span class="axis-y">Y</span><span class="axis-z">Z</span>
+      </div>
+      <div id="emptyState" class="empty-state">
+        <div class="scanner"><span></span></div>
+        <h3>等待点云数据</h3>
+        <p>真实雷达流量到达监听端口后会自动识别，并列在左侧。</p>
+      </div>
+    </section>
+
+    <aside class="panel controls-panel">
+      <div id="renderPanel" class="control-tab-panel active">
+      <div class="panel-title"><div><span class="eyebrow">RENDER</span><h2>显示</h2></div></div>
+      <label class="field">
+        <span>着色方式</span>
+        <select id="colorMode">
+          <option value="0">高度 · Turbo 伪彩</option>
+          <option value="1">反射强度 · 灰度</option>
+          <option value="2">距离 · Turbo 伪彩</option>
+          <option value="3">扫描线 · 分类色</option>
+        </select>
+      </label>
+      <label class="field">
+        <span>点大小 <output id="pointSizeValue">2.0</output></span>
+        <input id="pointSize" type="range" min="1" max="6" value="2" step="0.25">
+      </label>
+      <label class="field">
+        <span>最大距离 <output id="distanceValue">200 m</output></span>
+        <input id="maxDistance" type="range" min="5" max="200" value="200" step="5">
+      </label>
+
+      <div class="panel-section">
+        <span class="eyebrow">CAMERA</span>
+        <div class="button-grid">
+          <button data-view="perspective" class="secondary-button active">透视</button>
+          <button data-view="top" class="secondary-button">俯视</button>
+          <button data-view="front" class="secondary-button">前视</button>
+          <button data-view="side" class="secondary-button">侧视</button>
+        </div>
+      </div>
+
+      <div class="panel-section pcap-config">
+        <span class="eyebrow">PCAP REPLAY</span>
+        <input id="pcapFile" type="file" accept=".pcap,application/vnd.tcpdump.pcap" hidden>
+        <div class="pcap-actions">
+          <button id="importPcap" class="primary-button">导入 PCAP</button>
+          <button id="stopPcap" class="secondary-button" disabled>停止</button>
+        </div>
+        <label class="mode-toggle">
+          <input id="loopPcap" type="checkbox" checked>
+          <span><strong>循环回放</strong><small>按抓包时间间隔播放，适合短测试包持续观察</small></span>
+        </label>
+        <div class="pcap-progress"><span id="pcapProgress"></span></div>
+        <p id="pcapStatus" class="config-result">尚未导入 PCAP</p>
+      </div>
+
+      <div class="panel-section input-config">
+        <span class="eyebrow">UDP INPUT</span>
+        <label class="mode-toggle">
+          <input id="autoDiscovery" type="checkbox" checked>
+          <span><strong>自动抓包识别</strong><small>分析源/目标 IP、UDP 端口及 802.1Q VLAN</small></span>
+        </label>
+        <label class="mode-toggle">
+          <input id="autoArpAssist" type="checkbox" checked>
+          <span><strong>跨网段 ARP 引导</strong><small>直连雷达等待 ARP 时自动应答并触发数据流</small></span>
+        </label>
+        <p id="autoSummary" class="network-summary"></p>
+        <label class="field compact">
+          <span>手动监听 IP</span>
+          <input id="listenIp" type="text" value="0.0.0.0" spellcheck="false" placeholder="0.0.0.0">
+        </label>
+        <label class="field compact">
+          <span>手动监听端口（逗号分隔）</span>
+          <input id="udpPorts" type="text" value="2368, 6699, 7788, 8010, 8308" spellcheck="false">
+        </label>
+        <label class="field compact">
+          <span>雷达源 IP / CIDR（可留空）</span>
+          <input id="sourceNetworks" type="text" spellcheck="false" placeholder="192.168.1.201, 10.0.0.0/24">
+        </label>
+        <button id="applyNetwork" class="primary-button">应用监听配置</button>
+        <p id="configResult" class="config-result"></p>
+        <p class="vlan-note">自动模式优先使用 Npcap/libpcap 二层抓包，可直接解析 802.1Q/QinQ 标签并绕过未知目标端口。ARP 引导仅对物理有线网卡、重复出现且与本机现有网段不同的私网请求生效；关闭软件后立即停止应答。</p>
+      </div>
+
+      <div class="panel-section diagnostics">
+        <span class="eyebrow">DIAGNOSTICS</span>
+        <p id="shutdownNote" class="shutdown-note">关闭最后一个网页后，后台服务会自动退出并释放所有端口。</p>
+        <button id="safeShutdown" class="secondary-button">安全退出并恢复网卡</button>
+        <dl>
+          <div><dt>服务版本</dt><dd id="version">—</dd></div>
+          <div><dt>运行时间</dt><dd id="uptime">—</dd></div>
+          <div><dt>浏览器客户端</dt><dd id="clients">—</dd></div>
+          <div><dt>接收 UDP 包</dt><dd id="packetTotal">0</dd></div>
+        </dl>
+      </div>
+      </div>
+
+      <div id="networkPanel" class="control-tab-panel gateway-panel">
+        <div class="panel-title"><div><span class="eyebrow">NETWORK SETTING</span><h2>网络设置</h2></div></div>
+        <label class="mode-toggle">
+          <input id="forwardEnabled" type="checkbox">
+          <span><strong>启用雷达 UDP 转发</strong><small>仅转发自动识别为雷达 MSOP/DIFOP/状态的数据</small></span>
+        </label>
+        <label class="field compact">
+          <span>转发目标 IP</span>
+          <input id="forwardIp" type="text" spellcheck="false" placeholder="192.168.1.100">
+        </label>
+        <label class="field compact">
+          <span>转发目标端口</span>
+          <input id="forwardPort" type="number" min="0" max="65535" value="0">
+          <small class="field-help">填写 0 保持每路雷达原始目标端口，MSOP/DIFOP 不会混到同一端口。</small>
+        </label>
+        <label class="field compact">
+          <span>原目标端口过滤（可留空）</span>
+          <input id="forwardSourcePorts" type="text" spellcheck="false" placeholder="2368, 6699">
+        </label>
+        <button id="applyGateway" class="primary-button">应用转发配置</button>
+        <p id="gatewayResult" class="config-result"></p>
+        <dl class="compact-status">
+          <div><dt>转发包数</dt><dd id="forwardPackets">0</dd></div>
+          <div><dt>转发流量</dt><dd id="forwardBytes">0 B</dd></div>
+          <div><dt>丢弃包数</dt><dd id="forwardDropped">0</dd></div>
+        </dl>
+
+        <div class="panel-section usb-recording">
+          <span class="eyebrow">USB PCAP RECORDING</span>
+          <label class="field compact">
+            <span>USB 存储设备</span>
+            <select id="recordDirectory"><option value="">正在扫描挂载设备…</option></select>
+          </label>
+          <label class="field compact">
+            <span>文件名前缀</span>
+            <input id="recordPrefix" type="text" value="lidar" maxlength="64" spellcheck="false">
+          </label>
+          <label class="field compact">
+            <span>单文件分卷大小（MB）</span>
+            <input id="recordSplitMb" type="number" min="64" max="16384" value="1024">
+          </label>
+          <div class="pcap-actions">
+            <button id="startRecording" class="primary-button">开始录包</button>
+            <button id="stopRecording" class="secondary-button" disabled>停止</button>
+          </div>
+          <p id="recordingStatus" class="config-result">尚未开始录包</p>
+          <dl class="compact-status">
+            <div><dt>已记录</dt><dd id="recordPackets">0 pkt</dd></div>
+            <div><dt>文件大小</dt><dd id="recordBytes">0 B</dd></div>
+            <div><dt>USB 剩余</dt><dd id="recordFree">—</dd></div>
+          </dl>
+          <p class="vlan-note">保存为标准 Ethernet classic PCAP，保留 802.1Q/QinQ 标签并包含辅助 ARP。支持自动分卷；空间低于 256 MB 时自动安全停止。</p>
+        </div>
+
+        <div class="panel-section ptp-config">
+          <span class="eyebrow">IEEE 1588 PTP</span>
+          <label class="mode-toggle">
+            <input id="ptpEnabled" type="checkbox">
+            <span><strong>启用 PTP 授时</strong><small>路由器作为主时钟向雷达授时，或作为从时钟同步上游</small></span>
+          </label>
+          <label class="field compact"><span>雷达侧网口</span><select id="ptpInterface"></select></label>
+          <label class="field compact"><span>时钟角色</span><select id="ptpRole"><option value="master">主时钟 / Grandmaster</option><option value="client">从时钟 / Client</option></select></label>
+          <label class="field compact"><span>传输方式</span><select id="ptpTransport"><option value="L2">IEEE 802.3 L2</option><option value="UDPv4">UDP IPv4</option></select></label>
+          <label class="field compact"><span>时间戳</span><select id="ptpTimestamping"><option value="auto">自动（优先硬件）</option><option value="hardware">仅硬件 PHC</option><option value="software">软件时间戳</option></select></label>
+          <div class="field-pair">
+            <label class="field compact"><span>Domain</span><input id="ptpDomain" type="number" min="0" max="127" value="0"></label>
+            <label class="field compact"><span>Priority1</span><input id="ptpPriority" type="number" min="0" max="255" value="128"></label>
+          </div>
+          <label class="field compact"><span>延迟机制</span><select id="ptpDelay"><option value="E2E">E2E</option><option value="P2P">P2P</option><option value="Auto">自动</option></select></label>
+          <button id="applyPtp" class="primary-button">应用 PTP 配置</button>
+          <p id="ptpStatus" class="config-result">PTP 未启动</p>
+          <pre id="ptpLog" class="service-log"></pre>
+          <p class="vlan-note">硬件时间戳要求网卡具有 PHC；自动模式检测不到 PHC 时退回软件时间戳。主时钟模式应先确保路由器系统时间已由 NTP/GNSS 校准。</p>
+        </div>
+      </div>
+
+      <div id="ptpPanel" class="control-tab-panel ptp-panel">
+        <div class="panel-title"><div><span class="eyebrow">IEEE 1588</span><h2>PTP 设置</h2></div></div>
+      </div>
+
+      <div id="supportPanel" class="control-tab-panel support-panel">
+        <div class="panel-title"><div><span class="eyebrow">COMPATIBILITY</span><h2>支持型号说明</h2></div></div>
+        <p class="support-intro">自动识别不依赖固定目标端口。标有“角度表”的型号会在线读取并缓存设备专属 AngleHV 数据。</p>
+        <section class="support-vendor">
+          <h3><span>ROBOSENSE</span><small>rs_driver</small></h3>
+          <p>RS16 · RS32 · RSBP · RS48/80/128 · RSP48/80/128 · Helios/16P · AIRY · AIRYLITE · FAIRY · M1/M1 Jumbo · M2 · M3 · E1 · EMX · MX</p>
+        </section>
+        <section class="support-vendor">
+          <h3><span>HESAI</span><small>SDK 2.0</small></h3>
+          <p>AT128/E2X/E3X/P · ATX · Pandar40/40P/40M · Pandar64/128 · OT128 · JT16/JT128 · QT/QT128 · XT/XT32M · FT120 · FTX</p>
+        </section>
+        <section class="support-vendor">
+          <h3><span>VELODYNE</span><small>RAW DECODER</small></h3>
+          <p>VLP-16 · Puck LITE · VLP-16 Hi-Res · VLP-32C · HDL-32E · HDL-64E/S3 · VLS-128</p>
+        </section>
+        <section class="support-vendor featured">
+          <h3><span>SEYOND / INNOVUSION</span><small>INNO SDK</small></h3>
+          <p>Falcon-K1 · Falcon-K2 · Falcon-K24 · Robin-W · Robin-E · Robin-E1X/ELITE · Robin-E2/E2X · HB-D1</p>
+          <div class="support-note">Robin 与 HB 紧凑包：自动获取并缓存 AngleHV 角度表</div>
+        </section>
+        <div class="support-legend">
+          <span><i></i> 在线 UDP</span><span><i></i> PCAP 回放</span><span><i></i> VLAN/QinQ</span>
+        </div>
+      </div>
+    </aside>
+  </main>
+  <dialog id="reportStudioPanel" style="width:98vw;height:96vh;max-width:none;border:1px solid #aaa;padding:0;background:white">
+    <div style="padding:8px 16px;background:#b51f28;color:white;display:flex;justify-content:space-between;align-items:center">砺见智行工作室激光雷达测试工具 · 检测报告<button id="closeReportStudio" style="padding:8px 18px">返回点云查看器</button></div>
+    <iframe id="reportStudioFrame" title="内置检测报告工作台" style="width:100%;height:calc(100% - 52px);border:0"></iframe>
+  </dialog>
+  <script src="/app.js"></script>
+  <script src="/viewer-report-bridge.js"></script>
+</body>
+</html>

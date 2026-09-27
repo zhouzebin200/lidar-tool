@@ -1,0 +1,218 @@
+<!doctype html>
+<html lang="zh-CN">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta name="theme-color" content="#242424">
+  <title>LiDAR 网关控制台</title>
+  <link rel="stylesheet" href="/gateway.css">
+</head>
+<body>
+  <div class="app-shell">
+    <aside class="sidebar">
+      <a class="brand" href="#overview" aria-label="返回总览">
+        <span class="brand-mark" aria-hidden="true"><i></i><i></i><i></i></span>
+        <span><strong>LiDAR Gateway</strong><small>边缘控制台</small></span>
+      </a>
+      <nav class="side-nav" aria-label="功能导航">
+        <a class="active" href="#overview"><span class="nav-icon">⌂</span><span>运行总览</span></a>
+        <a href="#devices"><span class="nav-icon">⌁</span><span>设备与链路</span></a>
+        <a href="#capture"><span class="nav-icon">◎</span><span>网络接入</span></a>
+        <a href="#forwarding"><span class="nav-icon">⇢</span><span>UDP 转发</span></a>
+        <a href="#recording"><span class="nav-icon">◉</span><span>USB 录包</span></a>
+        <a href="#ptp"><span class="nav-icon">◷</span><span>PTP 授时</span></a>
+      </nav>
+      <div class="sidebar-foot">
+        <div class="router-chip"><span id="sideStatusDot" class="status-dot"></span><span><b id="sideHostname">OpenWrt</b><small id="sideVersion">正在连接网关</small></span></div>
+      </div>
+    </aside>
+
+    <main class="main">
+      <header class="topbar">
+        <div>
+          <p class="eyebrow">EDGE LIDAR CONTROL</p>
+          <h1>雷达网关</h1>
+        </div>
+        <div class="top-actions">
+          <div class="live-pill"><span class="pulse"></span><span id="liveText">连接中</span></div>
+          <div class="clock"><small>网关时间</small><strong id="clockText">--:--:--</strong></div>
+        </div>
+      </header>
+
+      <section id="overview" class="section hero-section">
+        <div class="hero-copy">
+          <p class="section-kicker">ROUTER STATUS</p>
+          <h2><span id="heroHostname">边缘网关</span>运行状态</h2>
+          <p>自动发现不同网段及 VLAN 内的雷达数据，并统一完成转发、录包与时间同步。</p>
+        </div>
+        <div class="hero-meta">
+          <span><i class="meta-dot green"></i><b id="captureBackend">抓包服务</b></span>
+          <span id="interfaceCount">0 个网络接口</span>
+          <span id="uptimeText">运行 --</span>
+        </div>
+      </section>
+
+      <section class="metric-grid" aria-label="关键指标">
+        <article class="metric-card cyan">
+          <div class="metric-head"><span>在线雷达</span><i>⌁</i></div>
+          <strong id="deviceCount">0</strong>
+          <small id="deviceModels">等待设备数据</small>
+        </article>
+        <article class="metric-card blue">
+          <div class="metric-head"><span>已捕获数据包</span><i>↧</i></div>
+          <strong id="packetCount">0</strong>
+          <small id="packetRate">0 包/秒</small>
+        </article>
+        <article class="metric-card violet">
+          <div class="metric-head"><span>UDP 转发</span><i>⇢</i></div>
+          <strong id="forwardState">已停止</strong>
+          <small id="forwardSummary">尚未配置目标</small>
+        </article>
+        <article class="metric-card amber">
+          <div class="metric-head"><span>USB 录包</span><i>●</i></div>
+          <strong id="recordState">待机</strong>
+          <small id="recordSummary">等待外部存储</small>
+        </article>
+      </section>
+
+      <section class="overview-grid">
+        <article class="panel traffic-panel">
+          <div class="panel-title">
+            <div><p class="section-kicker">LIVE TRAFFIC</p><h3>实时数据流量</h3></div>
+            <div class="traffic-total"><small>当前速率</small><strong id="trafficRate">0 pkt/s</strong></div>
+          </div>
+          <div class="chart-wrap">
+            <svg id="trafficChart" viewBox="0 0 720 210" preserveAspectRatio="none" role="img" aria-label="数据包速率趋势">
+              <defs><linearGradient id="trafficFill" x1="0" y1="0" x2="0" y2="1"><stop offset="0" stop-color="#25d6c4" stop-opacity=".34"/><stop offset="1" stop-color="#25d6c4" stop-opacity="0"/></linearGradient></defs>
+              <g class="grid-lines"><line x1="0" y1="40" x2="720" y2="40"/><line x1="0" y1="105" x2="720" y2="105"/><line x1="0" y1="170" x2="720" y2="170"/></g>
+              <path id="trafficArea" class="chart-area" d="M0 190 L720 190 L720 190 Z"/>
+              <path id="trafficLine" class="chart-line" d="M0 190 L720 190"/>
+            </svg>
+            <div class="chart-axis"><span>60 秒前</span><span>实时</span></div>
+          </div>
+        </article>
+
+        <article class="panel system-panel">
+          <div class="panel-title"><div><p class="section-kicker">SYSTEM</p><h3>系统资源</h3></div><span id="systemArch" class="mini-badge">--</span></div>
+          <div class="resource-list">
+            <div class="resource-row"><div><span>系统负载</span><b id="loadValue">--</b></div><div class="bar"><i id="loadBar"></i></div></div>
+            <div class="resource-row"><div><span>内存占用</span><b id="memoryValue">--</b></div><div class="bar"><i id="memoryBar"></i></div></div>
+            <div class="resource-row"><div><span>系统存储</span><b id="storageValue">--</b></div><div class="bar"><i id="storageBar"></i></div></div>
+          </div>
+          <div class="system-note"><span>Kernel</span><code id="kernelValue">--</code></div>
+        </article>
+      </section>
+
+      <section id="devices" class="section block-section">
+        <div class="section-heading"><div><p class="section-kicker">LINKS</p><h2>设备与链路</h2><p>这里只展示当前在线设备；流表可同时查看 MSOP、DIFOP 和 VLAN 信息。</p></div><span id="flowCount" class="count-badge">0 条流</span></div>
+        <div class="device-layout">
+          <article class="panel">
+            <div class="panel-title compact"><h3>在线设备</h3><span class="online-label"><i></i>实时</span></div>
+            <div id="deviceList" class="device-list"><div class="empty-state"><span>⌁</span><b>等待雷达上线</b><small>发现数据后会自动显示在这里</small></div></div>
+          </article>
+          <article class="panel flow-panel">
+            <div class="panel-title compact"><h3>活跃 UDP 流</h3><small>最近捕获的数据路径</small></div>
+            <div class="table-scroll">
+              <table><thead><tr><th>来源</th><th>目标</th><th>端口</th><th>VLAN</th><th>数据包</th><th>最近</th></tr></thead><tbody id="flowTable"><tr><td colspan="6" class="table-empty">暂无活跃流量</td></tr></tbody></table>
+            </div>
+          </article>
+        </div>
+      </section>
+
+      <section id="capture" class="section block-section">
+        <div class="section-heading"><div><p class="section-kicker">NETWORK</p><h2>网络接入</h2><p>默认在二层自动抓取雷达流量，兼容不同网段和 802.1Q VLAN；也可切换为指定 IP 与端口。</p></div><span id="captureStateBadge" class="state-badge">检测中</span></div>
+        <article class="panel form-panel">
+          <form id="captureForm">
+            <div class="feature-toggle">
+              <div class="feature-copy"><span class="feature-icon cyan-bg">◎</span><span><b>自动发现雷达流量</b><small>监听所有可用接口，不依赖电脑与雷达处于同一 IP 网段</small></span></div>
+              <label class="switch"><input id="autoDiscovery" type="checkbox"><span></span></label>
+            </div>
+            <div class="feature-toggle sub-toggle">
+              <div class="feature-copy"><span class="feature-icon blue-bg">↗</span><span><b>ARP 自动应答</b><small>保持原始 VLAN 标签，帮助需要 ARP 握手的雷达启动数据流</small></span></div>
+              <label class="switch"><input id="arpAssist" type="checkbox"><span></span></label>
+            </div>
+            <div id="manualCapture" class="form-grid three">
+              <label><span>监听 IP</span><input id="listenIp" value="0.0.0.0" autocomplete="off"><small>0.0.0.0 表示所有本机地址</small></label>
+              <label><span>UDP 端口</span><input id="udpPorts" value="2368, 6699, 7788" autocomplete="off"><small>多个端口使用逗号分隔</small></label>
+              <label><span>雷达源 IP / CIDR</span><input id="sourceNetworks" placeholder="留空表示不过滤" autocomplete="off"><small>例如 192.168.1.0/24</small></label>
+            </div>
+            <div class="form-actions"><span id="captureHint" class="form-hint">配置变更会短暂重启抓包服务</span><button class="primary-button" type="submit">保存网络配置</button></div>
+          </form>
+        </article>
+      </section>
+
+      <section id="forwarding" class="section block-section">
+        <div class="section-heading"><div><p class="section-kicker">FORWARDING</p><h2>UDP 转发</h2><p>将识别到的雷达数据原样转发到指定主机，可保留原端口或统一映射。</p></div><span id="forwardBadge" class="state-badge muted">已停止</span></div>
+        <article class="panel form-panel split-panel">
+          <form id="forwardForm" class="setting-side">
+            <div class="feature-toggle plain"><div class="feature-copy"><span class="feature-icon violet-bg">⇢</span><span><b>启用实时转发</b><small>关闭时保留下方配置</small></span></div><label class="switch"><input id="forwardEnabled" type="checkbox"><span></span></label></div>
+            <div class="form-grid two">
+              <label><span>目标 IP</span><input id="targetIp" placeholder="192.168.66.100" autocomplete="off"></label>
+              <label><span>目标端口</span><input id="targetPort" type="number" min="0" max="65535" value="0"><small>0 表示保持每个数据包的原目标端口</small></label>
+              <label class="wide"><span>端口过滤</span><input id="sourcePorts" placeholder="留空转发全部，例如 2368, 6699" autocomplete="off"></label>
+            </div>
+            <div class="form-actions"><span class="form-hint">仅转发已识别的雷达 UDP 数据</span><button class="primary-button" type="submit">应用转发配置</button></div>
+          </form>
+          <div class="stat-side">
+            <p class="section-kicker">FORWARD STATS</p><div class="big-stat"><strong id="forwardPackets">0</strong><span>已转发数据包</span></div>
+            <div class="mini-stat-grid"><div><b id="forwardBytes">0 B</b><span>转发流量</span></div><div><b id="forwardDropped">0</b><span>丢弃数据包</span></div></div>
+            <div id="forwardError" class="inline-alert hidden"></div>
+          </div>
+        </article>
+      </section>
+
+      <section id="recording" class="section block-section">
+        <div class="section-heading"><div><p class="section-kicker">RECORDING</p><h2>USB 录包</h2><p>将原始以太网帧保存为标准 PCAP，并按容量自动分卷，方便离线分析。</p></div><span id="recordBadge" class="state-badge muted">待机</span></div>
+        <article class="panel form-panel split-panel">
+          <form id="recordForm" class="setting-side">
+            <div class="storage-callout"><span class="feature-icon amber-bg">▣</span><div><b id="storageTitle">外部存储</b><small id="storageDescription">正在检测 USB 挂载设备</small></div><button id="refreshStorage" class="text-button" type="button">刷新</button></div>
+            <div class="form-grid two">
+              <label class="wide"><span>录包目录</span><select id="recordDirectory"><option value="">未检测到外部存储</option></select></label>
+              <label><span>文件名前缀</span><input id="recordPrefix" value="lidar" maxlength="64"></label>
+              <label><span>单文件大小</span><select id="splitMb"><option value="256">256 MB</option><option value="512">512 MB</option><option value="1024" selected>1 GB</option><option value="2048">2 GB</option><option value="4096">4 GB</option></select></label>
+            </div>
+            <div class="form-actions"><span class="form-hint">磁盘空间低于 256 MB 时自动停止</span><div class="button-row"><button id="stopRecord" class="secondary-button" type="button" disabled>停止录包</button><button id="startRecord" class="primary-button record-button" type="submit">开始录包</button></div></div>
+          </form>
+          <div class="stat-side recording-stats">
+            <p class="section-kicker">RECORD STATS</p><div class="record-indicator"><span id="recordPulse"></span><b id="recordLiveText">等待开始</b></div>
+            <div class="big-stat"><strong id="recordBytes">0 B</strong><span>当前会话写入量</span></div>
+            <div class="mini-stat-grid"><div><b id="recordPackets">0</b><span>写入数据包</span></div><div><b id="recordQueued">0</b><span>队列等待</span></div></div>
+            <code id="recordFile" class="file-path">尚未创建文件</code>
+          </div>
+        </article>
+      </section>
+
+      <section id="ptp" class="section block-section last-section">
+        <div class="section-heading"><div><p class="section-kicker">TIME SYNC</p><h2>PTP 授时</h2><p>通过 linuxptp 管理主从时钟；网卡有 PHC 时自动使用硬件时间戳，否则使用软件时间戳。</p></div><span id="ptpBadge" class="state-badge muted">已停止</span></div>
+        <div class="ptp-layout">
+          <article class="panel form-panel">
+            <form id="ptpForm">
+              <div class="feature-toggle plain"><div class="feature-copy"><span class="feature-icon green-bg">◷</span><span><b>启用 PTP 服务</b><small id="ptpAvailability">正在检查 linuxptp</small></span></div><label class="switch"><input id="ptpEnabled" type="checkbox"><span></span></label></div>
+              <div class="form-grid two">
+                <label class="wide"><span>同步网口</span><select id="ptpInterface"><option value="">请选择网口</option></select><small id="phcHint">选择网口后显示时间戳能力</small></label>
+                <label><span>时钟角色</span><select id="ptpRole"><option value="master">主时钟 / Grandmaster</option><option value="client">从时钟 / Client</option></select></label>
+                <label><span>传输协议</span><select id="ptpTransport"><option value="L2">IEEE 802.3 二层</option><option value="UDPv4">UDP over IPv4</option></select></label>
+                <label><span>时间戳</span><select id="ptpTimestamp"><option value="auto">自动选择</option><option value="hardware">硬件时间戳</option><option value="software">软件时间戳</option></select></label>
+                <label><span>延迟机制</span><select id="ptpDelay"><option value="E2E">E2E</option><option value="P2P">P2P</option><option value="Auto">自动</option></select></label>
+                <label><span>Domain</span><input id="ptpDomain" type="number" min="0" max="127" value="0"></label>
+                <label><span>Priority 1</span><input id="ptpPriority" type="number" min="0" max="255" value="128"></label>
+              </div>
+              <div class="form-actions"><span class="form-hint">保存后会自动启动或停止 ptp4l</span><button class="primary-button" type="submit">应用 PTP 配置</button></div>
+            </form>
+          </article>
+          <article class="panel ptp-monitor">
+            <div class="panel-title compact"><div><p class="section-kicker">PTP MONITOR</p><h3>同步监视器</h3></div><span id="ptpMode" class="mini-badge">未运行</span></div>
+            <div class="ptp-visual"><div class="clock-ring"><span></span><i></i><b>PTP</b></div><div><strong id="ptpStatusText">等待启动</strong><small id="ptpStatusDetail">选择网口并启用服务</small></div></div>
+            <div class="ptp-facts"><div><span>运行时间</span><b id="ptpUptime">--</b></div><div><span>ptp4l PID</span><b id="ptpPid">--</b></div></div>
+            <div class="log-head"><span>最近日志</span><button id="toggleLogs" class="text-button" type="button">展开</button></div><pre id="ptpLogs" class="ptp-logs collapsed">暂无 PTP 日志</pre>
+          </article>
+        </div>
+      </section>
+
+      <footer><span>Universal LiDAR Gateway <b id="footerVersion"></b></span><span>OpenWrt Edge Service</span></footer>
+    </main>
+  </div>
+  <div id="toast" class="toast" role="status" aria-live="polite"></div>
+  <script src="/gateway-app.js" defer></script>
+</body>
+</html>

@@ -1,0 +1,160 @@
+GroupID,Index,Get,Set,GroupName,VarName,VarLen,VarType,Description,IntegrityCheck,Permission,DefaultValue,CurrentValue,Options,OptionDescription,FunctionModule,Must,Unit,Coefficient,SetCoefficient,SetIndex,TimerUpdate
+0,Lidar Info,Lidar Info,,,,,,,,,,,,,,,,,,,
+0,Network,Source,Destination,,,,,,,,,,,,,,,,,,
+0,Lidar Function,Lidar Function,,,,,,,,,,,,,,,,,,,
+0,Time Sync,Time Sync,,,,,,,,,,,,,,,,,,,
+0,Operation Statistics,Availability,,,,,,,,,,,,,,,,,,,
+0,Upgrade,Upgrade,,,,,,,,,,,,,,,,,,,
+22,0,0x06,,,Master Offset,8,int64,"Offset between master and slave, Unit: ns",,,,,,,,1,,,,,
+22,1,0x06,,,Mean Offset,8,int64,"The average value of the offset time between master and slave, Unit: ns",,,,,,,,1,,,,,
+22,2,0x06,,,PTP State,4,uint32,,,1,,,,,,1,,,,,
+22,3,0x06,,,Elapsed Millisec,4,uint32,"Time elapsed since the last handshake between master/slave, in milliseconds",,,,,,,,1,,,,,
+23,0,0x06,,,Port Identity,10,uint8[],Port identity  Including 8-bytes clock identity(unsigned char) and 2-byte port number(unsigned short),,,,,,,,1,,,,,
+23,1,0x06,,,Port State,1,uint8,Same as ptp_state in the PTP STATUS message,,,,,,,,1,,,,,
+23,2,0x06,,,LogMinDelayReqInterval,1,uint8,"Minimum permitted mean time interval between Delay_Req messages Specified as a power of two in seconds  
+Default: 0 (representing 1 second)",,,,,,,,1,,,,,
+23,3,0x06,,,PeerMeanPathDelay,8,int64,"Peer means path delay value, in units of ns",,,,,,,,1,,,,,
+23,4,0x06,,,LogAnnounceInterval,1,int8,Not used,,,,,,,,1,,,,,
+23,5,0x06,,,AnnounceReceiptTimeout,1,uint8,Not used,,,,,,,,1,,,,,
+23,6,0x06,,,LogSyncInterval,1,int8,Not used,,,,,,,,1,,,,,
+23,7,0x06,,,Delay Mechanism,1,uint8,"Delay mechanism   Possible values: 1 - E2E, 2 -  P2P, and 0 - Auto",,,,,,,,1,,,,,
+23,8,0x06,,,LogMinPdelayReqInterval,1,int8,Minimum permitted mean time interval between Pdelay_Req messages  Specified as a power of two in seconds,,,,,,,,1,,,,,
+23,9,0x06,,,Version Number,1,uint8,PTP version number,,,,,,,,1,,,,,
+24,0,0x06,,,Master Offset ,8,int64,Time difference between master and slave at the last handshake(Unit:ns),,,,,,,,1,,,,,
+24,1,0x06,,,Ingress Time,8,int64,Hardware ingress timestamp of the last sync message received by the slave,,,,,,,,1,,,,,
+24,2,0x06,,,CumulativeScaledRateOffset,4,int32,"Equal to (rateRatio–1.0)*(2^41), truncated to the next smaller signed integer.rateRatio is the ratio of the frequency of the grandMaster to the frequency of theLocalClock entity in the time-aware system that sends the message;",,,,,,,,1,,,,,
+24,3,0x06,,,ScaledLastGmPhaseChange,4,int32,Fractional frequency offset of the current grandmaster relative to the previousgrandmaster,,,,,,,,,1,,,,
+24,4,0x06,,,GmTimeBaseIndicator,2,uint16,The timeBaseIndicator of the ClockSource entity for the current grandmaster,,,,,,,,1,,,,,
+24,5,0x06,,,LastGmPhaseChange.nanoseconds_msb,2,uint16,Time of the current grandmaster minus the time of the previous grandmaster(Higher two bytes),,,,,,,,1,,,,,
+24,6,0x06,,,LastGmPhaseChange.nanoseconds_lsb,8,int64,Time of the current grandmaster minus the time of the previous grandmaster(Lower eight bytes),,,,,,,,1,,,,,
+24,7,0x06,,,LastGmPhaseChange.fractional_nanoseconds,2,uint16,Time of the current grandmaster minus the time of the previous grandmaster(Fractional part ofthe nanoseconds),,,,,,,,1,,,,,
+24,8,0x06,,,GmPresent,4,int32,Whether grandmaster is present,,,,,,,,1,,,,,
+24,9,0x06,,,GmIdentity,8,uint8[],Grandmaster identity when gmPresent is 1,,,,,,,,1,,,,,
+1,0,0x07,,,SN,18,string,Serial number,,0,xxxxxx,xxxxxx,,,1_1_1_1,1,,,,,
+1,1,0x07,,,PN,32,string,Hesai Part Number,,0,xxxxxx,xxxxxx,,,1_1_2_1,,,,,,
+1,2,0x07,,,Date of Manufacture,16,string,Date of manufacture in ASCII(yyyy-mm-dd),,0,xxxxxx,xxxxxx,,,,1,,,,,
+1,3,0x07,,,MAC Address,6,MAC,"MAC address
+Each byte corresponds to two hexadecimal digits.",,0,xx:xx:xx:xx:xx,xx:xx:xx:xx:xx,,,2_1_5_1,1,,,,,
+1,4,0x07,,,Software Version,16,string,"Software version, in ASCII(xx.xx.xx)",,0,xxxxxx,xxxxxx,,,6_1_1_1|1_1_3_1,1,,,,,
+1,5,0x07,,,Hardware Version,16,string,"Hardware version, in ASCII",,1,,,,,,1,,,,,
+1,6,0x07,,,Firmware Version,16,string,"Controller firmware version, in ASCII",,0,xxxxxx,xxxxxx,,,6_1_2_1|1_1_4_1,1,,,,,
+1,7,0x07,,,SHA Value Of Controller Firmware,16,string,"SHA value of controller firmware
+Only the first 4 bytes are used.
+E.g., when the bytes stream in 00 11 22 33 44 55 66 77 88 99 AA BB CC DD EE FF, the 
+SHA value of controller firmware will be 00112233",,1,,,,,,,,,,,
+1,8,0x07,,,FPGA Parameters Version,16,string,FPGA parameters version,,1,,,,,,,,,,,
+1,9,0x07,,,FPGA Configuration Version,16,string,FPGA configuration version,,1,,,,,,,,,,,
+1,10,0x07,,,SHA value of FPGA Parameters,16,string,SHA value of FPGA parameters,,1,,,,,,,,,,,
+1,11,0x07,,,SHA value of FPGA Configuration,16,string,SHA value of FPGA configuration,,1,,,,,,,,,,,
+1,12,0x07,,,Angle Offset,2,uint16,Not Used,,,,,,,,,,,,,
+1,13,0x07,,,Lidar Model,1,uint8,Product model (not yet supported),,0,xxxxxx,xxxxxx,,,,1,,,,,
+1,14,0x07,,,Motor Type,1,uint8,Motor type (not yet supported),,,,,,,,,,,,,
+1,15,0x07,,,Num of Channels,1,uint8,Number of channels,,1,128,,,,,,,,,,
+1,16,0x07,,,Motor Correction Flag,1,uint8,"Motor corretion flag
+0 — Motor correction not finished
+1 — Motor correction finished",,1,,,,,,,,,,,
+1,17,0x07,,,Encoder Disk Correction Flag,1,uint8,"Encoder disk correction flag
+0——Encoder disk correction not finished
+1——Encoder disk correction finished",,1,,,,,,,,,,,
+1,18,0x07,,,Reserved,9,raw,Reserved,,,,,,,,,,,,,
+2,0,0x08,0x21,,Source IPv4 Address,4,IP,IP address of the device,,1,192.168.1.201,xxx.xxx.xxx.xxx,,,2_1_1_1,1,,,,1,
+2,1,0x08,0x21,,IPv4 Mask,4,IP,Subnet mask of the device,,1,255.255.255.0,xxx.xxx.xxx.xxx,,,2_1_2_1,1,,,,2,
+2,2,0x08,0x21,,IPv4 Gateway,4,IP,Gateway of the device,,1,192.168.1.1,xxx.xxx.xxx.xxx,,,2_1_3_1,1,,,,3,
+2,3,0x08,0x20,,Destination IPv4 Address,4,IP,Destination IP address of point cloud data packets,,1,255.255.255.255,xxx.xxx.xxx.xxx,,,2_2_1_1,1,,,,1,
+2,4,0x08,0x20,,UDP Port,2,uint16,Destination UDP port of point could data packets ,,1,2368,xxxxxx,,,2_2_2_1,1,,,,2,
+2,5,0x08,0x20,,Destination GPS UDP Address,2,uint16,"Destination UDP port of GPS data packets
+Valid only when the ""Clock Source"" is ""GPS""",,0,10110,10110,,,,1,,,,3,
+2,6,0x08,,,Spin Rate,2,uint16,Not used,,0,0,,0,Not used,,,RPM,1,,,
+2,7,0x08,0x18,,Sync Enable,1,uint8,"Status of sync angle (phase lock)
+0 - Disable  1 - Enable",,0,0,,0|1,,3_1_100_2_2,1,,,,1,
+2,8,0x08,0x18,,Sync Angle,2,uint16,Sync angle value,,1,0,xxx,0~359,,3_1_2_2,1,°,1,,2,
+2,9,0x08,,,Start Angle,2,uint16,Not used,,,,,,,,1,,,,,
+2,10,0x08,,,End Angle,2,uint16,Not used,,,,,,,,1,,,,,
+2,11,0x08,,,Clock Source,1,uint8,Not used,,0,Not used,Not used,1,,,1,,,,,
+2,12,0x08,,,UDP Sequence,1,uint8,Not used,,1,Not used,Not used,,,,1,,,,,
+2,13,0x08,,,Trigger Method,1,uint8,Not used,,0,Not used,Not used,,,,1,,,,,
+2,14,0x08,0x1E,,Return Mode,1,uint8,"Return mode
+1 — Strongest
+3 — First
+5 — First + Strongest",,1,1,1,1|3|5,"1 _ Strongest Return
+3 _ First Return
+5 _ First + Strongest Return",3_1_1_3,1,,,,1,
+2,15,0x08,0x1C,,Standby Mode,1,uint8,"Standy model
+0—In Operation 
+1—Standby",,1,0,0,0|1,"0 _ In Operation
+1 _ Standby",3_1_3_3,1,,,,1,
+2,16,0x08,0x2A,,Motor Type Status,1,uint8,Not used,,2,Not used,Not used,,,,1,,,,1,
+2,17,0x08,0x21,,VLAN,1,uint8,"Flag for VLAN tagging
+0—VLAN Not in use
+1—VLAN In use",,0,0,0,0|1,,2_1_100_2_4,1,,,,4,
+2,18,0x08,0x21,,VLAN ID,2,uint16,VLAN ID,,1,0,0,1~4094,,2_1_4_2,1,,,,5,
+2,19,0x08,,,Clock Data FMT,1,uint8,Not used,,,,,,,,1,,,,,
+2,20,0x08,,,Noise Filtering,1,uint8,Not used,,,,,,,,1,,,,,
+2,21,0x08,0x1D,,Reflectivity Mapping,1,uint8,Not used,,1,,,,,,1,,,,1,
+2,22,0x08,0x8C,,Fault Message Destination Port,2,uint16,Fault Message Destination Port,,1,xxxxxx,xxxxxx,0~65535,,2_2_3_1,1,,,,1,
+2,23,0x08,,,Reserved,4,raw,Resrved,,0,,,,,,,,,,,
+2,24,,0x8C,,Reserved,10,raw,Resrved,,,,,,,,,,,,2,
+3,0,0x09,,,System Uptime ,4,DT,System uptime,,0,xxxxxx,xxxxxx,,,5_1_2_1,1,,,,,1
+3,1,0x09,,,Motor Speed ,2,uint16,Real-time motor speed,,0,,,,,,1,RPM,,,,
+3,2,0x09,,,int32[0],4,uint32,,,0,xxxxxx,xxxxxx,,,,1,°C,0.01,,,
+3,3,0x09,,,int32[1],4,uint32,,,0,xxxxxx,xxxxxx,,,,1,°C,0.01,,,
+3,4,0x09,,,int32[2],4,uint32,,,0,xxxxxx,xxxxxx,,,,1,°C,0.01,,,
+3,5,0x09,,,int32[3],4,uint32,,,0,xxxxxx,xxxxxx,,,,1,°C,0.01,,,
+3,6,0x09,,,Internal Temperature,4,uint32,,,0,Not used,Not used,,,,1,°C,0.01,,,
+3,7,0x09,,,int32[5],4,uint32,,,0,xxxxxx,xxxxxx,,,,1,°C,0.01,,,
+3,8,0x09,,,int32[6],4,uint32,,,0,xxxxxx,xxxxxx,,,,1,°C,0.01,,,
+3,9,0x09,,,int32[7],4,uint32,,,0,xxxxxx,xxxxxx,,,,1,°C,0.01,,,
+3,10,0x09,,,int32[8],4,uint32,,,0,xxxxxx,xxxxxx,,,,1,°C,0.01,,,
+3,11,0x09,,,GPS PPS Lock,1,uint8,GPS PPS status(Not used),,,,,,,,1,,,,,
+3,12,0x09,,,GPS GPRMC Status,1,uint8,GPS GPRMC status(Not used),,,,,,,,1,,,,,
+3,13,0x09,,,Start-Up Times,4,uint32,System start-up times,,0,xxxxxx,xxxxxx,,,5_1_1_1,1,,,,,1
+3,14,0x09,,,Total Operation Time ,4,DT,Total time in operation,,0,xxxxxx,xxxxxx,,,5_1_3_1,1,,,,,1
+3,15,0x09,,,PTP Status,1,uint8,"PTP status
+0 — free run
+1 — tracking
+2 — locked
+3 — frozen",,0,0,0,0|1|2|3,"0 _ free run
+1 _ tracking
+2 _ locked
+3 _ frozen",4_1_1_3,0,,,,,1
+3,16,0x09,,,Internal Humidity ,4,uint32,Real-time relative humidity(Not used),,0,Not used,Not used,,,,1,%RH,0.1,,,
+3,17,0x09,,,Reserved,1,raw,Reserved,,1,,,,,,,,,,,
+7,0,0x26,0x24,,PTP Config Enable,1,uint8,"Status of PTP configurations
+0 — Disable
+1 — Enable ",,1,1,1,0|1,"0 _ Disable
+1 _ Enable",4_1_2_3,1,,,,1,
+7,1,0x26,0x24,,PTP Profile,1,uint8,"IEEE timing and synchronization standard
+2 — 802.1AS Automotive
+3 — 802.1AS AUTOSAR",,2,3,3,2|3,"2 _ 802.1AS (Automotive)
+3 _ 802.1AS (AUTOSAR)",4_1_3_3,1,,,,2,
+7,2,0x26,0x24,,PTP Domain Number,1,uint8,Domain attribute of the local clock,,1,0,0,0~127,,4_1_4_1,1,,,,3,
+7,3,0x26,0x24,,PTP Network Transport,1,uint8,"Network transport protocol
+1—L2",,1,1,1,1,1 _ L2,4_1_5_3,1,,,,4,
+7,4,0x26,0x24,,Switch Type,1,uint8,"Switch type (if applicable)
+0 — Non-TSN
+1 — TSN",,1,1,1,0|1,"0 _ Non-TSN
+1 _ TSN",4_1_6_3,1,,,,5,
+8,0,0x3A,0x39,,PTP Lock Time Offset,2,uint16,User-specified upper limit of the absolute offset for PTP lock status,,1,1,1,0~100,,4_1_7_1,1,us,1,,1,
+9,0,,0x10,,Restart,,,Restart,,2,,,,,,1,,,,,
+16,0,0x8D,,,Work Mode,1,uint8,"Lidar work mode
+0—Energy-Saving
+1—Standard
+2—Standby
+3—High-Temp-Shutdown
+4—Shutdown",,1,,,,,,,,,,,
+16,1,0x8D,,,Fault Code,1,uint8,"Fault code
+bit[3:0]
+0—No Energy-Saving fault
+1—Energy-Saving fault exists
+bit[4]:
+0—No High-Temp-Shutdown fault
+1—High-Temp-Shutdown fault exists
+bit[7:5]
+0—No Other-Shutdown fault
+Not 0—Other-Shutdown fault exists",,1,,,,,,,,,,,
+17,0,0xA4,,,EOL Status,1,uint8,0—Exit EOL node(default),,1,,,,,,,,,,,
+18,0,0xAB,,Sleep,,,,Set Lidar Sleep,,2,,,,,,,,,,,
+19,0,0x38,,,Operation Log,,,This item is used to specify the command to be used to get lidar log files,,,,,,,,,,,,,
+25,0,,0x0000000D,,Attach File,,,This entry is used to specify the command to be used for the lidar upgrade,,,,,,,6_1_3_4,,,,,1,
+26,0,0x00010070,,,Lidar Model,1,uint8,Lidar Model Code,,0,xxxxxx,unknown,,,,,,,,,
+27,0,0x30,,,Freeze Frames,,,,,,,,,,0_0_0_6,,,,,,
