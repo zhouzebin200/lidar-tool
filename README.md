@@ -1,5 +1,7 @@
 # 砺见智行工作室激光雷达测试工具
 
+[更新说明](CHANGELOG.md) · [开发与维护 Review](REVIEW.md)
+
 一个面向 RoboSense、Hesai、Huawei L306/D3、Velodyne 和 Seyond/Innovusion 雷达的跨平台实时点云查看器，已集成检测报告工作台。运行层零第三方 Python 依赖，包含本地 HTTP/WebSocket 服务、GPU 点云界面、UDP 设备发现、运行时网络配置和厂商原生解码插件。报告使用同一个进程中的设备、点云和网页/PTC 数据；不需要启动独立报告程序。
 
 当前 Windows 单文件程序由 `packaging/build_report.py` 构建，名称为 `砺见智行工作室激光雷达测试工具.exe`。项目目录、数据流、构建和历史产物说明见 [`docs/项目结构与维护.md`](docs/项目结构与维护.md)。

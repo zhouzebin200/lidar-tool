@@ -1,19 +1,77 @@
 # 砺见智行工作室激光雷达测试工具 开发与维护 Review
 
-> 快照日期：2026-09-27  
-> 项目版本：v0.2.1  
+> 快照日期：2026-09-30  
+> 项目版本：v0.2.1；包含 2026-09-30 未发布更新  
 > 运行目录：`universal-lidar-viewer`
+
+---
+
+## 2026-09-30 本次改动 Review：macOS 网络自适应
+
+审阅对象为源码提交 [f913f51](https://github.com/zhouzebin200/universal-lidar-viewer/commit/f913f51d9b063f79ff04060c80f05f277fb64455)。以下结论来自代码核查、自动化测试和本机打包检查，未包含离线雷达的实机验收。
+
+### 问题与行为变化
+
+雷达的目标 IP 与电脑地址不一致时，雷达可能持续请求目标 IP 的 ARP 解析，导致 MSOP/DIFOP UDP 数据无法开始发送。原来的自动网络配置仅覆盖 Windows；此次增加 macOS 的临时 IP 适配，使电脑可以响应雷达请求的地址。
+
+这次解决的是接收前的网络条件，没有修改 RoboSense DIFOP 的字段布局或解码算法。界面状态字段是否正确，仍需要真实数据验证。
+
+### 文件与核查重点
+
+| 文件 | 改动及核查重点 |
+| --- | --- |
+| `ulv/network_bootstrap.py` | 管理员启动、物理有线网卡识别、添加 IPv4 alias、先写恢复记录再修改网卡；恢复时核对网卡 MAC，只移除本程序添加的地址。 |
+| `ulv/capture.py` | 独立的 ARP 适配入口；重复请求、私有或链路本地地址、同一 /24、源过滤及设备 MAC 条件；未知 ARP 不触发修改。 |
+| `ulv/server.py` | 选择 macOS 管理器，接入 UDP/ARP 适配回调，处理广播目标地址，退出时等待适配线程完成后恢复。 |
+| `tests/test_macos_network_bootstrap.py` | 8 项用例覆盖地址所有权、恢复、权限及 VLAN 拒绝、无线网卡拒绝、网卡拔出或替换、失败恢复和 ARP 引导。 |
+| `tests/test_network_bootstrap.py` | Windows 回退测试显式模拟 Windows 平台，避免受运行测试的宿主平台影响。 |
+| `tests/test_no_network_mutation.py` | macOS BUNDLE 打包配置不再被要求包含 Windows UAC 字段。 |
+| `packaging/build_macos.py` | 收集资源和现有 dylib 插件，构建 .app、临时签名及拖拽安装 DMG；脚本不编译缺失的厂商插件。 |
+
+### 已完成验证
+
+- 54 项相关测试通过，包括网络管理、抓包、协议识别、PCAP 回放及本机已有的部分原生插件用例。
+- macOS arm64 应用构建成功；应用签名完整性检查及 DMG 校验通过。使用的是 ad-hoc 临时签名，没有完成 Developer ID 签名及公证。
+- 打包程序在关闭提权的模式下接收 3 个合成、1248 字节 DIFOP UDP 包，RoboSense 插件分发调用计数为 3；程序正常退出。
+- 本机缺少 Hesai/Seyond 原生插件，扩大原生插件测试范围时出现 3 项相关失败。因此不能将本次 54 项结果描述为全量测试通过。
+
+复现本次测试（Python 环境及对应原生插件须就绪）：
+
+```sh
+python -m unittest \
+  tests.test_macos_network_bootstrap \
+  tests.test_network_bootstrap \
+  tests.test_capture \
+  tests.test_no_network_mutation \
+  tests.test_detection \
+  tests.test_pcap_replay \
+  tests.test_native_plugins.NativePluginTests.test_velodyne_vlp16_decodes_complete_revolution \
+  tests.test_native_plugins.NativePluginTests.test_huawei_l306_uses_demo_packet_layout_scale_and_calibration
+```
+
+macOS 构建（需安装 PyInstaller，并先准备对应架构的插件）：
+
+```sh
+python packaging/build_macos.py
+```
+
+### 限制与待实机验收
+
+- 自动配置当前限于无 VLAN 的物理 USB/以太网接口，使用 /24 地址；无线网卡和 VLAN 自动配置不在本次支持范围内。
+- 首次接入时，RoboSense MAC 前缀是设备识别线索，不是身份认证；已识别设备可使用其缓存 MAC 触发适配。
+- 管理员授权与实际网卡地址增删尚未完成本次实机验证。雷达恢复连接后，应检查：目标地址不一致时能否自动收到 MSOP/DIFOP；真实 DIFOP 状态字段；正常退出后临时地址清理；异常退出后的恢复；拔插原 USB 网卡后的恢复记录处理。
+- 验收时同时核对原有 IP 和 DHCP 保持正常，并记录真实数据包、界面状态及恢复结果。
 
 ---
 
 ## 1. 产品定位与架构目标
 
-本项目是运行在 Windows/x86-64 平台上的**通用激光雷达实时点云查看器与自动化检测报告一体化工作台**（砺见智行工作室激光雷达测试工具）。
+本项目支持 Windows/x86-64 和 macOS/arm64，是**通用激光雷达实时点云查看器与自动化检测报告一体化工作台**（砺见智行工作室激光雷达测试工具）。
 
 核心定位：
 1. **单进程一体化**：点云解码、网络发现、标定维护与自动化报告生成在同一进程内协同工作，避免端口争用与网络设备冲突；
 2. **多厂商多架构统一抽象**：统一支持 RoboSense、Hesai、Huawei、Velodyne、Seyond 等主流车载与工业级激光雷达；
-3. **二层自适应无感接入**：依托 Npcap 自动识别物理网卡、雷达源/目的 IP、端口、802.1Q/QinQ VLAN，支持跨网段 ARP 激活，无需用户手工配置繁琐静态 IP；
+3. **二层自适应无感接入**：Windows 依托 Npcap 自动识别物理网卡、雷达源/目的 IP、端口、802.1Q/QinQ VLAN，支持跨网段 ARP 激活，无需用户手工配置繁琐静态 IP；
 4. **全型号自动化检测报告**：内置厂商专属遥测与诊断协议（如禾赛 PTC 1.0 / 2.0），自动采集供电、电气、多通道温度、内部湿度、固件版本、运行机构指标并导出结构化检测报告。
 
 ---
@@ -21,8 +79,8 @@
 ## 2. 当前核心能力矩阵
 
 ### 2.1 网络层与服务鲁棒性
-- **二层嗅探与过滤**：Npcap 自动遍历宿主机物理网卡，实时解析以太网帧、VLAN 及 QinQ 头部；
-- **自适应网络配置**：需要跨网段或广播诱发流时，自动写入临时 IPv4 / VLAN 并具备完备的恢复机制；未安装 Npcap 时自动降级为全端口 UDP Socket 通配监听；
+- **二层嗅探与过滤**：Npcap/libpcap 自动遍历宿主机物理网卡，实时解析以太网帧、VLAN 及 QinQ 头部；
+- **自适应网络配置**：Windows 支持临时 IPv4 / VLAN 配置；macOS 支持无 VLAN 直连的 IPv4 alias 配置。两者使用恢复记录；抓包不可用时 UDP Socket 按配置的端口监听；
 - **端口冲突自愈（WinError 10013 消除）**：深度规避 Windows Hyper-V / WSL2 / winnat 动态随机保留端口范围。默认端口 17777 遭遇权限限制时，自动平滑回退探测 `18888`、`27777`、`37777`，杜绝启动闪退。
 
 ### 2.2 点云解码与标定
@@ -94,7 +152,7 @@ python run.py
 ```powershell
 python -m unittest discover -s tests -v
 ```
-*当前工程包含 78 项自动化测试（覆盖各厂商解码、多型号 PTC 模拟服务端、边界条件与安全认证），必须保证 100% 全部通过。*
+*2026-09-27 的历史验收记录为 78 项测试通过；测试数量会随新增用例变化。本次 macOS 验证范围和缺失插件导致的失败见上方 Review，全量验收应在插件齐全的环境执行。*
 
 ### 5.3 重新构建单文件分发包
 ```powershell
