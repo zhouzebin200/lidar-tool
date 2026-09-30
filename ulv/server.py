@@ -34,7 +34,12 @@ from .gateway import LidarGateway, system_snapshot
 from .hesai_ptc import HesaiPtcClient
 from .lidar_web_scraper import LidarWebScraper
 from .native_plugins import NativePluginManager
-from .network_bootstrap import WindowsNetworkBootstrapManager, ensure_windows_admin
+from .network_bootstrap import (
+    MacOSNetworkBootstrapManager,
+    WindowsNetworkBootstrapManager,
+    ensure_macos_admin,
+    ensure_windows_admin,
+)
 from .pcap_replay import PcapReplay
 from .ptp import PtpController
 from .raw_ptc import RawPtcSocket, flow_vlan_tags
@@ -349,9 +354,9 @@ class Application:
         self._network_adapt_lock = threading.Lock()
         self._network_profiles_attempted: set[tuple[str, str, str, int]] = set()
         self._adapted_radars: set[str] = set()
-        self.network_manager = WindowsNetworkBootstrapManager(
-            config_path.with_name("network-recovery.json")
-        )
+        manager_type = MacOSNetworkBootstrapManager if sys.platform == "darwin" else WindowsNetworkBootstrapManager
+        self.network_manager = manager_type(config_path.with_name("network-recovery.json"))
+        self._network_adapt_thread: threading.Thread | None = None
         self.network_adapt_status = {
             "state": "idle", "interface": "", "radar_ip": "",
             "requested_host_ip": "", "vlan_id": None, "message": "等待点云数据流",
@@ -449,7 +454,9 @@ class Application:
                 local_addresses=tuple(local_ipv4_addresses()),
                 raw_packet_callback=self._handle_raw_packet,
                 network_adapt_callback=(self._request_network_adapt
-                                        if sys.platform == "win32" and self.auto_network_adapt else None),
+                                        if sys.platform in ("win32", "darwin") and self.auto_network_adapt else None),
+                arp_network_adapt_callback=(self._request_network_adapt
+                                            if sys.platform == "darwin" and self.auto_network_adapt else None),
             )
             self.capture = capture
             if capture.start():
@@ -467,7 +474,7 @@ class Application:
         network = ipaddress.ip_network(f"{radar}/24", strict=False)
         if (destination.version == 4 and not destination.is_multicast
                 and not destination.is_unspecified and destination in network
-                and destination != radar):
+                and destination != radar and destination != network.broadcast_address):
             return str(destination)
         candidate = ipaddress.ip_address(int(network.network_address) + 100)
         if candidate == radar:
@@ -501,9 +508,9 @@ class Application:
         profile = (interface_name, radar_ip, host_ip, vlan_id)
         if profile in self._network_profiles_attempted:
             return False
-        self._network_profiles_attempted.add(profile)
         if not self._network_adapt_lock.acquire(blocking=False):
             return False
+        self._network_profiles_attempted.add(profile)
         self.network_adapt_status = {
             "state": "configuring", "interface": interface,
             "radar_ip": radar_ip, "requested_host_ip": host_ip,
@@ -559,7 +566,8 @@ class Application:
                         self._start_inputs_locked()
                 self._network_adapt_lock.release()
 
-        threading.Thread(target=worker, name="lidar-network-adapt", daemon=True).start()
+        self._network_adapt_thread = threading.Thread(target=worker, name="lidar-network-adapt", daemon=True)
+        self._network_adapt_thread.start()
         return False
 
     def _stop_inputs_locked(self) -> None:
@@ -823,6 +831,9 @@ class Application:
             self._idle_shutdown_timer = None
         with self._listener_lock:
             self._stop_inputs_locked()
+        worker = self._network_adapt_thread
+        if worker is not None and worker is not threading.current_thread():
+            worker.join()
         restored, message = self.network_manager.restore_all()
         if message:
             self.network_adapt_status["state"] = "restored" if restored else "error"
@@ -1141,7 +1152,7 @@ def main() -> int:
     parser.add_argument("--offline-report", type=Path, help="write the offline test JSON report")
     parser.add_argument("--offline-cache", type=Path, help="explicit calibration cache for offline test")
     parser.add_argument("--service-mode", action="store_true", help="keep running when all browser pages close")
-    parser.add_argument("--no-elevation", action="store_true", help="disable automatic Windows VLAN/IP adaptation")
+    parser.add_argument("--no-elevation", action="store_true", help="disable automatic administrator authorization and host-network adaptation")
     parser.add_argument("--gateway-only", action="store_true", help="run discovery/forwarding/PCAP/PTP without decoder plugins")
     args = parser.parse_args()
 
@@ -1156,8 +1167,9 @@ def main() -> int:
         )
         write_report(report, args.offline_report)
         return 0 if report["success"] else 4
-    if not args.no_elevation and not ensure_windows_admin():
-        print("Administrator permission was declined; automatic VLAN/IP adaptation is unavailable.")
+    if not args.no_elevation:
+        if not ensure_windows_admin() or not ensure_macos_admin():
+            print("Administrator permission was declined; automatic packet capture/network adaptation is unavailable.")
     config_path = runtime_config_path(project_root)
     saved_config: dict = {}
     if config_path.is_file():

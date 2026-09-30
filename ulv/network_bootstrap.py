@@ -6,10 +6,14 @@ import base64
 import ctypes
 import ipaddress
 import json
+import os
 import re
+import shlex
+import socket
 import subprocess
 import sys
 import threading
+import time
 from pathlib import Path
 try:
     import winreg
@@ -61,8 +65,219 @@ def ensure_windows_admin() -> bool:
     return False
 
 
+def ensure_macos_admin() -> bool:
+    """Relaunch once through the macOS administrator authorization dialog.
+
+    libpcap needs access to the BPF devices in order to discover LiDAR streams
+    sent to arbitrary UDP ports.  A bundled Finder-launched app has no terminal
+    in which to ask for ``sudo``, so use the native authorization dialog and
+    leave the relaunched process running in the background.
+    """
+    if sys.platform != "darwin" or os.geteuid() == 0:
+        return True
+    if getattr(sys, "frozen", False):
+        command = [sys.executable, *sys.argv[1:]]
+    else:
+        command = [sys.executable, str(Path(sys.argv[0]).resolve()), *sys.argv[1:]]
+    log_path = "/tmp/universal-lidar-viewer.log"
+    # ``nohup`` fails with "can't detach from console" for a Finder-launched
+    # app on newer macOS releases. AppleScript's shell can safely detach a
+    # background child once all three standard streams are redirected.
+    shell_command = (
+        " ".join(shlex.quote(item) for item in command)
+        + " </dev/null >" + shlex.quote(log_path) + " 2>&1 &"
+    )
+    script = (
+        "on run argv\n"
+        "do shell script (item 1 of argv) with administrator privileges\n"
+        "end run"
+    )
+    try:
+        result = subprocess.run(
+            ["/usr/bin/osascript", "-e", script, shell_command],
+            check=False,
+            stdout=subprocess.DEVNULL,
+            stderr=subprocess.DEVNULL,
+        )
+    except OSError:
+        return False
+    if result.returncode == 0:
+        requested_port = 17777
+        arguments = sys.argv[1:]
+        for index, value in enumerate(arguments):
+            if value == "--port" and index + 1 < len(arguments):
+                try:
+                    requested_port = int(arguments[index + 1])
+                except ValueError:
+                    pass
+        candidate_ports = [requested_port]
+        if requested_port == 17777:
+            candidate_ports.extend((18888, 27777, 37777))
+        url = None
+        for _ in range(80):
+            for port in candidate_ports:
+                try:
+                    with socket.create_connection(("127.0.0.1", port), timeout=0.1):
+                        url = f"http://127.0.0.1:{port}"
+                        break
+                except OSError:
+                    continue
+            if url:
+                break
+            time.sleep(0.1)
+        if url:
+            try:
+                subprocess.Popen(
+                    ["/usr/bin/open", url],
+                    stdout=subprocess.DEVNULL,
+                    stderr=subprocess.DEVNULL,
+                )
+            except OSError:
+                pass
+        raise SystemExit(0)
+    return False
+
+
 def _powershell_string(value: str) -> str:
     return "'" + value.replace("'", "''") + "'"
+
+
+class MacOSNetworkBootstrapManager:
+    """Add recoverable IPv4 aliases without changing DHCP or primary IP."""
+
+    def __init__(self, journal_path: Path) -> None:
+        self.journal_path = journal_path
+        self._lock = threading.RLock()
+
+    @staticmethod
+    def _run(arguments: list[str]) -> tuple[bool, str]:
+        try:
+            result = subprocess.run(arguments, capture_output=True, text=True, timeout=10, check=False)
+            return result.returncode == 0, (result.stdout if not result.returncode else result.stderr).strip()
+        except (OSError, subprocess.TimeoutExpired) as exc:
+            return False, str(exc)
+
+    def _interface(self, name: str) -> tuple[bool, dict | str]:
+        if not re.fullmatch(r"en\d+", name):
+            return False, "only physical Ethernet interfaces are supported"
+        ok, ports = self._run(["/usr/sbin/networksetup", "-listallhardwareports"])
+        if not ok:
+            return False, ports
+        blocks = ports.split("\n\n")
+        block = next((b for b in blocks if re.search(r"^Device: " + re.escape(name) + r"$", b, re.M)), "")
+        label = block.splitlines()[0].casefold() if block else ""
+        if not any(word in label for word in ("ethernet", "usb", "lan")) or any(
+                word in label for word in ("wi-fi", "wifi", "wireless", "bridge")):
+            return False, "automatic adaptation requires a physical wired Ethernet/USB adapter"
+        ok, output = self._run(["/sbin/ifconfig", name])
+        if not ok:
+            return False, output
+        mac = re.search(r"\bether ([0-9a-fA-F:]{17})", output)
+        if not mac:
+            return False, "adapter hardware address is unavailable"
+        return True, {"interface": name, "mac": mac.group(1).lower(),
+                      "addresses": re.findall(r"\binet (\d+\.\d+\.\d+\.\d+)\b", output)}
+
+    def _records(self) -> list[dict]:
+        if not self.journal_path.exists():
+            return []
+        value = json.loads(self.journal_path.read_text(encoding="utf-8"))
+        if value.get("platform") != "darwin" or not isinstance(value.get("records"), list):
+            raise ValueError("invalid macOS network recovery journal")
+        for item in value["records"]:
+            if (not re.fullmatch(r"en\d+", str(item.get("interface", "")))
+                    or not re.fullmatch(r"[0-9a-f]{2}(?::[0-9a-f]{2}){5}", str(item.get("mac", "")))
+                    or ipaddress.IPv4Address(item["requested_ip"]).is_loopback):
+                raise ValueError("invalid macOS recovery record")
+        return value["records"]
+
+    def _write(self, records: list[dict]) -> None:
+        self.journal_path.parent.mkdir(parents=True, exist_ok=True)
+        temporary = self.journal_path.with_suffix(".tmp")
+        temporary.write_text(json.dumps({"platform": "darwin", "records": records}, indent=2), encoding="utf-8")
+        temporary.chmod(0o600)
+        temporary.replace(self.journal_path)
+
+    def apply(self, pcap_interface_name: str, radar_ip: str,
+              requested_host_ip: str, vlan_id: int) -> tuple[bool, str]:
+        if sys.platform != "darwin":
+            return False, "macOS network adaptation is unavailable on this platform"
+        if os.geteuid() != 0:
+            return False, "需要管理员权限；请重新启动程序并允许 macOS 授权"
+        if vlan_id != 0:
+            return False, "macOS 自动 IP 适配当前支持无 VLAN 的直连雷达"
+        try:
+            radar = ipaddress.IPv4Address(radar_ip)
+            target = ipaddress.IPv4Address(requested_host_ip)
+            if (not (radar.is_private or radar.is_link_local) or radar.is_loopback
+                    or target not in ipaddress.ip_network(f"{radar}/24", strict=False)
+                    or target == radar or (int(target) & 255) in (0, 1, 255)):
+                return False, "invalid radar destination address"
+        except ipaddress.AddressValueError as exc:
+            return False, str(exc)
+        with self._lock:
+            try:
+                records = self._records()
+                ok, adapter = self._interface(pcap_interface_name)
+                if not ok:
+                    return False, str(adapter)
+                if str(target) in adapter["addresses"]:
+                    return True, f"{pcap_interface_name} 已具有目标地址 {target}"
+                ok, all_interfaces = self._run(["/sbin/ifconfig", "-a"])
+                if not ok:
+                    return False, all_interfaces
+                if str(target) in re.findall(r"\binet (\d+\.\d+\.\d+\.\d+)\b", all_interfaces):
+                    return False, "目标 IP 已被其他本机网卡使用"
+                record = {"interface": pcap_interface_name, "mac": adapter["mac"],
+                          "requested_ip": str(target), "original_ipv4": adapter["addresses"]}
+                # Persist ownership before the OS mutation, including failed
+                # or interrupted commands. Recovery only removes our alias.
+                records.append(record)
+                self._write(records)
+                ok, output = self._run(["/sbin/ifconfig", pcap_interface_name, "alias", str(target),
+                                        "netmask", "255.255.255.0"])
+                if not ok:
+                    return False, output
+                return True, f"已为 {pcap_interface_name} 添加临时地址 {target}/24；退出时移除"
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                return False, str(exc)
+
+    def restore_all(self) -> tuple[bool, str]:
+        with self._lock:
+            try:
+                records = self._records()
+                if not records:
+                    return True, ""
+                if os.geteuid() != 0:
+                    return False, "恢复临时网卡地址需要管理员权限"
+                remaining = []
+                errors = []
+                for record in records:
+                    ok, adapter = self._interface(record["interface"])
+                    if not ok or adapter["mac"] != record["mac"]:
+                        remaining.append(record)
+                        errors.append("原 USB 网卡不可用，保留恢复记录")
+                        continue
+                    address = record["requested_ip"]
+                    if address in record.get("original_ipv4", []):
+                        remaining.append(record)
+                        errors.append("恢复记录包含原有 IP，拒绝删除")
+                        continue
+                    if address in adapter["addresses"]:
+                        ok, output = self._run(["/sbin/ifconfig", record["interface"], "-alias", address])
+                        if not ok:
+                            remaining.append(record)
+                            errors.append(output)
+                if remaining:
+                    self._write(remaining)
+                    return False, "; ".join(errors)
+                self.journal_path.unlink(missing_ok=True)
+                return True, "已移除临时 IP，原有网卡地址和 DHCP 设置保持不变"
+            except (OSError, ValueError, KeyError, TypeError) as exc:
+                return False, str(exc)
+
+    def recover_pending(self) -> tuple[bool, str]:
+        return self.restore_all()
 
 
 class WindowsNetworkBootstrapManager:

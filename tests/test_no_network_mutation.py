@@ -21,8 +21,9 @@ class RecoverableNetworkMutationTests(unittest.TestCase):
         self.assertIn("--uac-admin", build_report)
         self.assertIn("--uac-admin", build_portable)
         for spec in ROOT.glob("*.spec"):
-            if "LicenseAdmin" not in spec.name and "LidarReportStudio" not in spec.name:
-                self.assertIn("uac_admin=True", spec.read_text(encoding="utf-8"))
+            source = spec.read_text(encoding="utf-8")
+            if "LicenseAdmin" not in spec.name and "LidarReportStudio" not in spec.name and "BUNDLE(" not in source:
+                self.assertIn("uac_admin=True", source)
 
 
 if __name__ == "__main__":

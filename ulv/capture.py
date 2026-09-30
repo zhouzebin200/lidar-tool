@@ -349,6 +349,7 @@ class PacketCapture:
         local_addresses: tuple[str, ...] = (),
         raw_packet_callback: Callable[[bytes, int, dict], None] | None = None,
         network_adapt_callback: Callable[[dict], bool] | None = None,
+        arp_network_adapt_callback: Callable[[dict], bool] | None = None,
     ) -> None:
         self.registry = registry
         self.packet_callback = packet_callback
@@ -357,6 +358,7 @@ class PacketCapture:
         self.local_addresses = tuple(local_addresses)
         self.raw_packet_callback = raw_packet_callback
         self.network_adapt_callback = network_adapt_callback
+        self.arp_network_adapt_callback = arp_network_adapt_callback
         # A /24 guard is intentionally conservative for automatic ARP. It
         # prevents this process from answering for ordinary peers on the
         # host's existing LAN while still covering the common LiDAR setup.
@@ -384,6 +386,7 @@ class PacketCapture:
         self._arp_replies = 0
         self._arp_candidates: dict[tuple, dict] = {}
         self._processing_suspended = False
+        self._arp_adapt_attempts: set[tuple] = set()
 
     def start(self) -> bool:
         try:
@@ -514,6 +517,8 @@ class PacketCapture:
             last_reply_ns = candidate["last_reply_ns"]
         # Require repeated requests. A normal one-off LAN ARP is never enough
         # to activate the raw LiDAR path; repeat at most once per second.
+        if request_count >= 3 and self.arp_network_adapt_callback is not None:
+            self._adapt_arp_target(request, interface, interface_name, key)
         if not safe or request_count < 2 or now_ns - last_reply_ns < 1_000_000_000:
             return
         responder_mac = self._virtual_mac(interface_name)
@@ -526,6 +531,45 @@ class PacketCapture:
                 candidate["last_reply_ns"] = now_ns
                 candidate["responder_mac"] = _mac_text(responder_mac)
             self._arp_replies += 1
+
+    def _adapt_arp_target(self, request: CapturedArp, interface: str,
+                          interface_name: str, key: tuple) -> None:
+        """Bootstrap a known LiDAR before unresolved ARP suppresses all UDP."""
+        if key in self._arp_adapt_attempts or not self.arp_assist_enabled:
+            return
+        try:
+            sender = ipaddress.IPv4Address(request.sender_ip)
+            target = ipaddress.IPv4Address(request.target_ip)
+        except ipaddress.AddressValueError:
+            return
+        if (request.operation != 1 or request.destination_mac != "ff:ff:ff:ff:ff:ff"
+                or not self._wired_interface(interface)
+                or request.sender_ip in self.local_addresses
+                or request.target_ip in self.local_addresses
+                or sender == target or not (sender.is_private or sender.is_link_local)
+                or not (target.is_private or target.is_link_local)
+                or sender.is_loopback or target.is_loopback or sender.is_unspecified
+                or target not in ipaddress.ip_network(f"{sender}/24", strict=False)
+                or (int(target) & 255) in (0, 1, 255)):
+            return
+        if self.source_networks and not any(sender in network for network in self.source_networks):
+            return
+        # Previously decoded devices are trusted by their MAC. For first
+        # contact, the supported RoboSense OUI includes the observed Bpearl.
+        # Unknown ARP alone is insufficient evidence to change host addresses.
+        mac = request.source_mac.lower()
+        device = next((d for (_vendor, identity), d in self._device_cache.items()
+                       if identity == mac), None)
+        vendor = device.vendor if device else ("RoboSense" if mac.startswith("40:2c:76:") else "")
+        if not vendor:
+            return
+        self._arp_adapt_attempts.add(key)
+        self.arp_network_adapt_callback({
+            "interface": interface, "interface_name": interface_name,
+            "source_ip": request.sender_ip, "destination_ip": request.target_ip,
+            "source_mac": mac, "vlan_ids": list(request.vlan_ids),
+            "vendor": vendor, "trigger": "arp",
+        })
 
     def _capture_loop(self, handle: int, interface: str, interface_name: str) -> None:
         assert self.library is not None

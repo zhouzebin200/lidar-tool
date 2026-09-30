@@ -70,7 +70,9 @@ class NetworkBootstrapTests(unittest.TestCase):
                 self.assertTrue(journal.is_file())
                 return True, ""
 
-            with patch("ulv.network_bootstrap.windows_is_admin", return_value=True), \
+            with patch("ulv.network_bootstrap.sys.platform", "win32"), \
+                 patch("ulv.network_bootstrap.windows_is_admin", return_value=True), \
+                 patch.object(manager, "_apply_fast", return_value=(False, "test fallback")), \
                  patch.object(manager, "_query_adapter", return_value=(True, original)), \
                  patch.object(manager, "_run_powershell", side_effect=fake_run):
                 success, _ = manager.apply(

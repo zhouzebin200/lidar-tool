@@ -49,6 +49,10 @@ python packaging/build_report.py
 
 Windows 版启动时申请一次管理员权限。自动模式从点云流取得雷达 IP、入口物理网卡和 VLAN；若目标是组播或广播地址，则在雷达 `/24` 网段选择 `.100` 作为临时本机地址。程序先把网卡原 IPv4、DHCP、VLAN ID 和“优先级/VLAN”开关写入恢复日志，再设置临时地址和 VLAN。网卡重启后抓包与 SDK 自动恢复，普通 PTC TCP 9347 可直接读取报告数据。
 
+macOS 版同样在启动时请求管理员授权。无 VLAN 的 USB/以太网直连可根据已识别的 UDP 流添加目标 `/24` 临时 IP，保留原有 IP 和 DHCP 设置。没有 UDP 时，连续三次来自已识别雷达 MAC（或 RoboSense `40:2c:76` 前缀）的 ARP 请求也能启动适配。例如本机是 `192.168.11.22`、Bpearl 请求 `192.168.11.222`，程序为对应 USB 网卡增加 `.222`，随后通过 libpcap 接收任意 MSOP/DIFOP 端口。未知设备的 ARP 请求不会触发地址修改；自动创建 VLAN 接口暂未支持。
+
+macOS 临时地址在操作前写入恢复记录，正常退出时只删除本程序添加的地址；异常退出后，下次启动先恢复。USB 网卡拔出时保留恢复记录，待原网卡重新接入后恢复，避免删除其他网卡的地址。`--no-elevation` 同时关闭 Windows/macOS 的管理员授权和网络适配。
+
 正常退出或关闭最后一个查看器网页时，程序删除临时 IP并恢复原 VLAN、优先级开关和 DHCP状态。若进程被强制结束，恢复日志会保留；下次启动先恢复上一次配置，再开始新的自动识别。`--no-elevation` 可用于开发和离线场景，关闭网卡自适应。
 
 如果系统没有抓包运行库或当前用户缺少抓包权限，程序自动降级为普通 UDP 通配监听：绑定 `0.0.0.0`，覆盖所有本机 IPv4 网卡，并监听四个解码器的标准在线端口：Hesai `2368/10110`，RoboSense `6699/7788/7766/6688`（EMX DIFOP2 默认为 `7766`），Velodyne 数据/位置包 `2368/8308`，Seyond/Innovusion 数据包 `8010`。网页左侧会明确显示当前是 `Npcap/libpcap` 还是 `socket fallback`。
@@ -156,4 +160,3 @@ python scripts/validate_pcap.py D:/test.pcap
 ```powershell
 UniversalLidarViewer.exe --offline-test D:/lidardata --offline-report offline-report.json
 ```
-
