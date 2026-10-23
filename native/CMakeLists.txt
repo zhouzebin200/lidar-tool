@@ -24,6 +24,11 @@ target_include_directories(ulv_robosense PRIVATE
   "${RS_DRIVER_ROOT}/src"
 )
 target_compile_definitions(ulv_robosense PRIVATE DISABLE_PCAP_PARSE)
+# rs_driver declares recvmmsg in its Linux socket backend even in RAW_PACKET mode.
+if(APPLE)
+  target_compile_options(ulv_robosense PRIVATE
+    -include "${CMAKE_CURRENT_LIST_DIR}/include/macos_socket_compat.h")
+endif()
 
 if(WIN32)
   target_link_libraries(ulv_robosense PRIVATE ws2_32)

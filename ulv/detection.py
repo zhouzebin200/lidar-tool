@@ -33,6 +33,7 @@ ROBOSENSE_MSOP_LENGTHS: dict[int, str] = {
     1210: "RSM1",
     1342: "RSM2",
     1200: "RSE1",
+    844: "RSE2",
     812: "RSEMX",
     1404: "RSMX",
     1448: "RSM3",
@@ -276,6 +277,9 @@ def detect_packet(data: bytes, destination_port: int) -> Detection | None:
 
     if data.startswith(ROBOSENSE_MSOP_AIRYLITE) and len(data) == 1280:
         return Detection("RoboSense", "RSAIRYLITE_ETH", 0.98, "matched AIRYLITE MSOP signature")
+
+    if len(data) == 1296 and data.startswith(bytes.fromhex("a5 ff 00 ae")):
+        return Detection("RoboSense", "RSE2", 0.98, "matched E2 angle calibration packet")
 
     if data.startswith(ROBOSENSE_DIFOP_PREFIX):
         return Detection("RoboSense", "model pending MSOP", 0.91, "matched DIFOP identifier")

@@ -1,3 +1,11 @@
+# 2026-10-23 E2 查看器接入
+
+基线 main 34abaaa；仅修改网页查看器的速腾解码链路，ROS 保持原样。
+
+验证：10 项 C++ ASAN/UBSAN 场景通过，Python 共 91 项，88 项通过，3 项依赖未安装的禾赛/Seyond Mac 插件，显式跳过。5 项新增 Python 测试全部通过。合成 PCAP 1152 包输出 2 帧、每帧 67784 点，无解码错误或丢包。未验证真实 E2 抓包或 Windows 构建。独立审查发现的重启帧号恢复问题已修复并复审。
+
+macOS 本地插件 SHA256：`0bffb629feccae6250ec74d8ff5d4412f6d37beba8b9bbd87e8c7e96582b9d34`。使用步骤见 [E2_VIEWER.md](docs/E2_VIEWER.md)，详情见 [E2_VALIDATION.json](docs/E2_VALIDATION.json)。
+
 # 砺见智行工作室激光雷达测试工具 开发与维护 Review
 
 > 快照日期：2026-09-30  

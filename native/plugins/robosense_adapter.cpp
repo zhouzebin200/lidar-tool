@@ -1,4 +1,5 @@
 #include "ulv_decoder_plugin.h"
+#include "robosense_e2.hpp"
 
 #include <rs_driver/api/lidar_driver.hpp>
 #include <rs_driver/msg/point_cloud_msg.hpp>
@@ -129,6 +130,10 @@ class RoboSenseAdapter {
 
   bool start() {
     if (callback_ == nullptr) return false;
+    if (model_ == "RSE2" || model_ == "RS-LiDAR-E2" || model_ == "E2") {
+      e2_.reset(new E2Decoder(device_id_, callback_, user_data_));
+      return true;
+    }
     LidarType exact_type;
     if (lidar_type_for(model_, &exact_type)) {
       return start_candidate(model_, exact_type);
@@ -147,6 +152,12 @@ class RoboSenseAdapter {
 
   int feed_payload(const uint8_t* payload, size_t payload_size, uint64_t receive_timestamp_ns) {
     if (payload == nullptr || payload_size == 0) return -1;
+    if (!e2_ && (E2Decoder::is_msop(payload, payload_size) || E2Decoder::is_angles(payload, payload_size)))
+      e2_.reset(new E2Decoder(device_id_, callback_, user_data_));
+    if (e2_) {
+      e2_->feed(payload, payload_size, receive_timestamp_ns);
+      return 0;
+    }
     Packet rs_packet(payload_size);
     std::memcpy(rs_packet.buf_.data(), payload, payload_size);
     rs_packet.timestamp = static_cast<double>(receive_timestamp_ns) / 1e9;
@@ -245,6 +256,7 @@ class RoboSenseAdapter {
     callback_(&frame, user_data_);
   }
 
+  std::unique_ptr<E2Decoder> e2_;
   std::string model_;
   uint32_t device_id_;
   ulv_frame_callback_v1 callback_;
