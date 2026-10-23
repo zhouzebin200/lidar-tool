@@ -1,0 +1,16 @@
+[
+  "src/rslidar_msg/CMakeLists.txt",
+  "src/rslidar_msg/LICENSE",
+  "src/rslidar_msg/msg/RslidarPacket.msg",
+  "src/rslidar_msg/package.xml",
+  "src/rslidar_sdk/CMakeLists.txt",
+  "src/rslidar_sdk/config/config.yaml",
+  "src/rslidar_sdk/config/em4_online.yaml",
+  "src/rslidar_sdk/config/em4_pcap.yaml",
+  "src/rslidar_sdk/launch/em4.launch",
+  "src/rslidar_sdk/launch/em4.launch.py",
+  "src/rslidar_sdk/rviz/rviz.rviz",
+  "src/rslidar_sdk/rviz/rviz2.rviz",
+  "src/rslidar_sdk/src/rs_driver/src/rs_driver/driver/decoder/decoder_RSEM4.hpp",
+  "src/rslidar_sdk/src/rs_driver/src/rs_driver/driver/decoder/em4_compression.hpp"
+]

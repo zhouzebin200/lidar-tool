@@ -1,0 +1,13 @@
+PASS DIFOP2 unlocks fixed-format points and applies signed yaw/surface pitch
+PASS current compressed column has 520 points
+PASS signed 4-bit differences and 16-bit block alignment
+PASS signed 8-bit differences
+PASS raw 16-bit compression blocks
+PASS malformed compressed data emits no partial points
+PASS missing or truncated calibration does not unlock points
+PASS zero radius stays invalid when user minimum is zero
+PASS optional feature point type preserves the SDK binary flag
+PASS legacy 1310-byte calibration remains supported
+PASS legacy marked RLE compressed stream remains supported
+PASS new-format fragments require matching sequence and surface
+Failures: 0

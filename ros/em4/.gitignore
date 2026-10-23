@@ -1,0 +1,8 @@
+.test-build/
+build/
+devel/
+install/
+log/
+__pycache__/
+*.pyc
+em4_replay.yaml

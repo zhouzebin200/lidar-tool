@@ -162,3 +162,9 @@ python scripts/validate_pcap.py D:/test.pcap
 ```powershell
 UniversalLidarViewer.exe --offline-test D:/lidardata --offline-report offline-report.json
 ```
+
+## EM4 ROS SDK 修复版
+
+独立 ROS1/ROS2 工作区位于 [`ros/em4`](ros/em4/README.md)，包含 EM4 新版压缩列解码、DIFOP2 标定、520 通道修正、VLAN/自定义端口配置及测试记录。该工作区单独编译，不会替换当前点云查看器的解码插件。
+
+已通过 12 项 EM4 回归和原 SDK 58 项测试；原始 PCAPNG 经驱动核心输出 95 帧、36,392,507 个有效点。当前验证主机没有 ROS，ROS 话题发布仍需在目标 Ubuntu/ROS 环境验证。编译与启动步骤见[使用说明](ros/em4/README_EM4_%E4%B8%AD%E6%96%87.md)。

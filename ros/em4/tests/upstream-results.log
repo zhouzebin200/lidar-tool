@@ -1,0 +1,187 @@
+[==========] Running 58 tests from 20 test suites.
+[----------] Global test environment set-up.
+[----------] 2 tests from TestABDualPacketTraverser
+[ RUN      ] TestABDualPacketTraverser.ctor
+[       OK ] TestABDualPacketTraverser.ctor (0 ms)
+[ RUN      ] TestABDualPacketTraverser.ctor_fov
+[       OK ] TestABDualPacketTraverser.ctor_fov (0 ms)
+[----------] 2 tests from TestABDualPacketTraverser (0 ms total)
+
+[----------] 3 tests from TestParseTime
+[ RUN      ] TestParseTime.parseTimeYMD
+[       OK ] TestParseTime.parseTimeYMD (0 ms)
+[ RUN      ] TestParseTime.parseTimeUTCWithUs
+[       OK ] TestParseTime.parseTimeUTCWithUs (0 ms)
+[ RUN      ] TestParseTime.getTimeHost
+[       OK ] TestParseTime.getTimeHost (0 ms)
+[----------] 3 tests from TestParseTime (0 ms total)
+
+[----------] 2 tests from TestParseTemp
+[ RUN      ] TestParseTemp.parseTempInLe
+[       OK ] TestParseTemp.parseTempInLe (0 ms)
+[ RUN      ] TestParseTemp.parseTempInBe
+[       OK ] TestParseTemp.parseTempInBe (0 ms)
+[----------] 2 tests from TestParseTemp (0 ms total)
+
+[----------] 1 test from TestBuffer
+[ RUN      ] TestBuffer.ctor
+[       OK ] TestBuffer.ctor (0 ms)
+[----------] 1 test from TestBuffer (0 ms total)
+
+[----------] 8 tests from TestChanAngles
+[ RUN      ] TestChanAngles.genUserChan
+[       OK ] TestChanAngles.genUserChan (0 ms)
+[ RUN      ] TestChanAngles.loadFromFile
+fail to open angle file:../test/res/non_exist.csv
+[       OK ] TestChanAngles.loadFromFile (0 ms)
+[ RUN      ] TestChanAngles.loadFromDifop
+[       OK ] TestChanAngles.loadFromDifop (0 ms)
+[ RUN      ] TestChanAngles.memberLoadFromFile
+[       OK ] TestChanAngles.memberLoadFromFile (0 ms)
+[ RUN      ] TestChanAngles.memberLoadFromFile_fail
+fail to open angle file:../test/res/non_exist.csv
+[       OK ] TestChanAngles.memberLoadFromFile_fail (0 ms)
+[ RUN      ] TestChanAngles.memberLoadFromDifop
+[       OK ] TestChanAngles.memberLoadFromDifop (0 ms)
+[ RUN      ] TestChanAngles.memberLoadFromDifop_fail
+[       OK ] TestChanAngles.memberLoadFromDifop_fail (0 ms)
+[ RUN      ] TestChanAngles.memberLoadFromDifop_fail_angle
+[       OK ] TestChanAngles.memberLoadFromDifop_fail_angle (0 ms)
+[----------] 8 tests from TestChanAngles (0 ms total)
+
+[----------] 2 tests from TestDecoderRS16
+[ RUN      ] TestDecoderRS16.getEchoMode
+[       OK ] TestDecoderRS16.getEchoMode (0 ms)
+[ RUN      ] TestDecoderRS16.RS16DifopPkt2Adapter
+[       OK ] TestDecoderRS16.RS16DifopPkt2Adapter (0 ms)
+[----------] 2 tests from TestDecoderRS16 (0 ms total)
+
+[----------] 4 tests from TestDecoderRS32
+[ RUN      ] TestDecoderRS32.getEchoMode
+[       OK ] TestDecoderRS32.getEchoMode (0 ms)
+[ RUN      ] TestDecoderRS32.RS32DifopPkt2Adapter
+[       OK ] TestDecoderRS32.RS32DifopPkt2Adapter (0 ms)
+[ RUN      ] TestDecoderRS32.decodeDifopPkt
+[       OK ] TestDecoderRS32.decodeDifopPkt (0 ms)
+[ RUN      ] TestDecoderRS32.decodeMsopPkt
+[       OK ] TestDecoderRS32.decodeMsopPkt (0 ms)
+[----------] 4 tests from TestDecoderRS32 (0 ms total)
+
+[----------] 3 tests from TestDecoderRSBP
+[ RUN      ] TestDecoderRSBP.getEchoMode
+[       OK ] TestDecoderRSBP.getEchoMode (0 ms)
+[ RUN      ] TestDecoderRSBP.decodeDifopPkt
+[       OK ] TestDecoderRSBP.decodeDifopPkt (0 ms)
+[ RUN      ] TestDecoderRSBP.decodeMsopPkt
+[       OK ] TestDecoderRSBP.decodeMsopPkt (0 ms)
+[----------] 3 tests from TestDecoderRSBP (0 ms total)
+
+[----------] 6 tests from TestDecoder
+[ RUN      ] TestDecoder.angles_from_file
+[1m[33mwait_for_difop cannot be true when config_from_file is true. reset it to be false.[0m
+[       OK ] TestDecoder.angles_from_file (0 ms)
+[ RUN      ] TestDecoder.angles_from_file_fail
+fail to open angle file:../test/res/non_exist.csv
+[1m[33mwait_for_difop cannot be true when config_from_file is true. reset it to be false.[0m
+[       OK ] TestDecoder.angles_from_file_fail (0 ms)
+[ RUN      ] TestDecoder.processDifopPkt_fail
+[       OK ] TestDecoder.processDifopPkt_fail (0 ms)
+[ RUN      ] TestDecoder.processDifopPkt
+[       OK ] TestDecoder.processDifopPkt (0 ms)
+[ RUN      ] TestDecoder.processDifopPkt_invalid_rpm
+[1m[33mLiDAR RPM is 0. Use default value 600.[0m
+[       OK ] TestDecoder.processDifopPkt_invalid_rpm (0 ms)
+[ RUN      ] TestDecoder.processMsopPkt
+[       OK ] TestDecoder.processMsopPkt (0 ms)
+[----------] 6 tests from TestDecoder (1 ms total)
+
+[----------] 2 tests from TestDualPacketTraverser
+[ RUN      ] TestDualPacketTraverser.ctor
+[       OK ] TestDualPacketTraverser.ctor (0 ms)
+[ RUN      ] TestDualPacketTraverser.ctor_fov
+[       OK ] TestDualPacketTraverser.ctor_fov (0 ms)
+[----------] 2 tests from TestDualPacketTraverser (0 ms total)
+
+[----------] 2 tests from TestRs16DualReturnBlockIterator
+[ RUN      ] TestRs16DualReturnBlockIterator.ctor
+[       OK ] TestRs16DualReturnBlockIterator.ctor (0 ms)
+[ RUN      ] TestRs16DualReturnBlockIterator.ctor_fov
+[       OK ] TestRs16DualReturnBlockIterator.ctor_fov (0 ms)
+[----------] 2 tests from TestRs16DualReturnBlockIterator (0 ms total)
+
+[----------] 2 tests from TestRs16SingleReturnBlockIterator
+[ RUN      ] TestRs16SingleReturnBlockIterator.ctor
+[       OK ] TestRs16SingleReturnBlockIterator.ctor (0 ms)
+[ RUN      ] TestRs16SingleReturnBlockIterator.ctor_fov
+[       OK ] TestRs16SingleReturnBlockIterator.ctor_fov (0 ms)
+[----------] 2 tests from TestRs16SingleReturnBlockIterator (0 ms total)
+
+[----------] 5 tests from TestAzimuthSection
+[ RUN      ] TestAzimuthSection.round
+[       OK ] TestAzimuthSection.round (0 ms)
+[ RUN      ] TestAzimuthSection.ctorFull
+[       OK ] TestAzimuthSection.ctorFull (0 ms)
+[ RUN      ] TestAzimuthSection.ctor
+[       OK ] TestAzimuthSection.ctor (0 ms)
+[ RUN      ] TestAzimuthSection.ctorCrossZero
+[       OK ] TestAzimuthSection.ctorCrossZero (0 ms)
+[ RUN      ] TestAzimuthSection.ctorBeyondRound
+[       OK ] TestAzimuthSection.ctorBeyondRound (0 ms)
+[----------] 5 tests from TestAzimuthSection (0 ms total)
+
+[----------] 3 tests from TestDistanceSection
+[ RUN      ] TestDistanceSection.ctor
+[       OK ] TestDistanceSection.ctor (0 ms)
+[ RUN      ] TestDistanceSection.ctorZeroUserDistance
+[       OK ] TestDistanceSection.ctorZeroUserDistance (0 ms)
+[ RUN      ] TestDistanceSection.ctorNegtiveUserDistance
+[       OK ] TestDistanceSection.ctorNegtiveUserDistance (0 ms)
+[----------] 3 tests from TestDistanceSection (0 ms total)
+
+[----------] 2 tests from TestSingleReturnBlockIterator
+[ RUN      ] TestSingleReturnBlockIterator.ctor
+[       OK ] TestSingleReturnBlockIterator.ctor (0 ms)
+[ RUN      ] TestSingleReturnBlockIterator.ctor_fov
+[       OK ] TestSingleReturnBlockIterator.ctor_fov (0 ms)
+[----------] 2 tests from TestSingleReturnBlockIterator (0 ms total)
+
+[----------] 2 tests from TestSplitStrategyByAngle
+[ RUN      ] TestSplitStrategyByAngle.newBlock
+[       OK ] TestSplitStrategyByAngle.newBlock (0 ms)
+[ RUN      ] TestSplitStrategyByAngle.newBlock_Zero
+[       OK ] TestSplitStrategyByAngle.newBlock_Zero (0 ms)
+[----------] 2 tests from TestSplitStrategyByAngle (0 ms total)
+
+[----------] 1 test from TestSplitStrategyByNum
+[ RUN      ] TestSplitStrategyByNum.newBlock
+[       OK ] TestSplitStrategyByNum.newBlock (0 ms)
+[----------] 1 test from TestSplitStrategyByNum (0 ms total)
+
+[----------] 3 tests from TestSplitStrategyBySeq
+[ RUN      ] TestSplitStrategyBySeq.newPacket_by_seq
+[       OK ] TestSplitStrategyBySeq.newPacket_by_seq (0 ms)
+[ RUN      ] TestSplitStrategyBySeq.newPacket_prev_seq
+[       OK ] TestSplitStrategyBySeq.newPacket_prev_seq (0 ms)
+[ RUN      ] TestSplitStrategyBySeq.newPacket_rewind
+[       OK ] TestSplitStrategyBySeq.newPacket_rewind (0 ms)
+[----------] 3 tests from TestSplitStrategyBySeq (0 ms total)
+
+[----------] 4 tests from TestSyncQueue
+[ RUN      ] TestSyncQueue.emptyPop
+[       OK ] TestSyncQueue.emptyPop (1 ms)
+[ RUN      ] TestSyncQueue.nulPtrPop
+[       OK ] TestSyncQueue.nulPtrPop (0 ms)
+[ RUN      ] TestSyncQueue.valPtrPop
+[       OK ] TestSyncQueue.valPtrPop (0 ms)
+[ RUN      ] TestSyncQueue.clear
+[       OK ] TestSyncQueue.clear (0 ms)
+[----------] 4 tests from TestSyncQueue (1 ms total)
+
+[----------] 1 test from TestTrigon
+[ RUN      ] TestTrigon.ctor
+[       OK ] TestTrigon.ctor (0 ms)
+[----------] 1 test from TestTrigon (0 ms total)
+
+[----------] Global test environment tear-down
+[==========] 58 tests from 20 test suites ran. (4 ms total)
+[  PASSED  ] 58 tests.
