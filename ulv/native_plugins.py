@@ -513,7 +513,15 @@ class NativePluginManager:
         calibration_cache_directory: Path | None = None,
         correction_file: Path | None = None,
         default_correction_directory: Path | None = None,
+        authorize: Callable[[], bool] | None = None,
     ) -> None:
+        self.authorize = authorize
+        original_emit = emit
+
+        def authorized_emit(frame: bytes) -> None:
+            if authorize is None or authorize():
+                original_emit(frame)
+
         self.plugins: list[LoadedPlugin] = []
         self.errors: list[str] = []
         cache_directory = calibration_cache_directory or default_calibration_cache_directory()
@@ -529,7 +537,7 @@ class NativePluginManager:
         for path in candidates:
             try:
                 self.plugins.append(LoadedPlugin(
-                    path, emit, identify, cache_directory,
+                    path, authorized_emit, identify, cache_directory,
                     correction_file if "hesai" in path.name.casefold() else None,
                     default_correction_directory,
                 ))
@@ -544,6 +552,8 @@ class NativePluginManager:
         source_port: int,
         destination_port: int,
     ) -> None:
+        if self.authorize is not None and not self.authorize():
+            return
         for plugin in self.plugins:
             if plugin.vendor.lower() == device.vendor.lower():
                 plugin.feed(

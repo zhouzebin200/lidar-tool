@@ -9,7 +9,7 @@ import subprocess
 import sys
 
 
-ROOT = Path(__file__).resolve().parents[1]
+ROOT = Path(__file__).resolve().parents[2]
 WEB = ROOT / "web"
 CORRECTIONS = ROOT / "corrections"
 PRIVATE_KEY = ROOT / "licensing" / "private" / "license_private_key.json"
@@ -22,11 +22,15 @@ def pyinstaller(
     windowed: bool,
     include_viewer_assets: bool,
     extra_data: tuple[tuple[Path, str], ...] = (),
+    private: bool = False,
 ) -> Path:
     command = [
         sys.executable, "-m", "PyInstaller", "--noconfirm", "--clean", "--onefile",
         "--name", name,
     ]
+    destination = ROOT / "licensing" / "private" / "releases" if private else ROOT / "dist"
+    if private:
+        command.extend(["--distpath", str(destination), "--workpath", str(destination.parent / "build")])
     if os.name == "nt" and windowed:
         command.append("--windowed")
     if os.name == "nt" and include_viewer_assets:
@@ -42,7 +46,7 @@ def pyinstaller(
     command.append(str(entry))
     subprocess.run(command, cwd=ROOT, check=True)
     suffix = ".exe" if os.name == "nt" else ""
-    return ROOT / "dist" / f"{name}{suffix}"
+    return destination / f"{name}{suffix}"
 
 
 def copy_common_documentation(bundle: Path) -> None:
@@ -91,8 +95,9 @@ def build_private_admin() -> Path:
         ROOT / "licensing" / "license_admin.py", "ULV-LicenseAdmin",
         windowed=False, include_viewer_assets=False,
         extra_data=((PRIVATE_KEY, "licensing/private"),),
+        private=True,
     )
-    bundle = ROOT / "dist" / "ULV-LicenseAdmin-private"
+    bundle = ROOT / "licensing" / "private" / "releases" / "ULV-LicenseAdmin-private"
     if bundle.exists():
         shutil.rmtree(bundle)
     bundle.mkdir(parents=True)

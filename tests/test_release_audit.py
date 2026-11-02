@@ -4,6 +4,8 @@ import importlib.util
 from pathlib import Path
 import tempfile
 import unittest
+import io
+import zipfile
 
 
 SCRIPT = Path(__file__).resolve().parents[1] / "packaging" / "audit_public_release.py"
@@ -14,6 +16,25 @@ SPEC.loader.exec_module(release_audit)
 
 
 class PublicReleaseAuditTests(unittest.TestCase):
+    def test_rejects_compressed_and_nested_secrets(self):
+        nested = io.BytesIO()
+        with zipfile.ZipFile(nested, "w", zipfile.ZIP_DEFLATED) as archive:
+            archive.writestr("config.json", '{"private_key":"dummy-test-data"}')
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            with zipfile.ZipFile(root / "customer.zip", "w", zipfile.ZIP_DEFLATED) as archive:
+                archive.writestr("nested.zip", nested.getvalue())
+                archive.writestr("license.key", "dummy")
+            problems = "\n".join(release_audit.audit(root))
+            self.assertIn("nested.zip!config.json", problems)
+            self.assertIn("license.key", problems)
+
+    def test_rejects_invalid_zip(self):
+        with tempfile.TemporaryDirectory() as directory:
+            root = Path(directory)
+            (root / "customer.zip").write_bytes(b"broken")
+            self.assertIn("invalid ZIP", "\n".join(release_audit.audit(root)))
+
     def test_accepts_runtime_assets(self):
         with tempfile.TemporaryDirectory() as directory:
             root = Path(directory)

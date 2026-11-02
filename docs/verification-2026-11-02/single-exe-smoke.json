@@ -1,0 +1,458 @@
+{
+  "isolated_exe": "C:\\ULV-SingleExe-Smoke\\Lijian-LidarTool-Windows-x64.exe",
+  "license_files_present": [],
+  "offline_exit": 0,
+  "offline": {
+    "mode": "offline-isolated-pcap-test",
+    "input": "C:\\ULV-QA-20261102\\synthetic-vlp16.pcap",
+    "pcap_count": 1,
+    "passed": 1,
+    "failed": 0,
+    "success": true,
+    "results": [
+      {
+        "file": "C:\\ULV-QA-20261102\\synthetic-vlp16.pcap",
+        "records": 11,
+        "accepted_packets": 11,
+        "vendors": [
+          "Velodyne"
+        ],
+        "frames": 2,
+        "callback_frames": 2,
+        "last_points": 1920,
+        "models": [
+          "VLP-16"
+        ],
+        "decode_errors": 0,
+        "dropped_packets": 0,
+        "plugin_errors": [],
+        "error": "",
+        "success": true
+      }
+    ]
+  },
+  "status": {
+    "name": "Universal LiDAR Viewer",
+    "version": "0.2.0",
+    "uptime_seconds": 0.8,
+    "websocket_clients": 0,
+    "listeners": [
+      {
+        "bind_ip": "127.0.0.1",
+        "port": 57891,
+        "state": "listening",
+        "error": null,
+        "packets": 0,
+        "accepted_packets": 0,
+        "receive_buffer_bytes": 16777216,
+        "packet_sizes": {},
+        "at128_azimuth_centidegrees": 0,
+        "at128_azimuth_jumps": 0
+      }
+    ],
+    "capture": null,
+    "config": {
+      "auto_discovery": false,
+      "auto_arp_assist": true,
+      "auto_network_adapt": false,
+      "listen_ip": "127.0.0.1",
+      "udp_ports": [
+        57891
+      ],
+      "effective_listen_ip": "127.0.0.1",
+      "effective_udp_ports": [
+        57891
+      ],
+      "automatic_udp_ports": [
+        2368,
+        6699,
+        7788,
+        7766,
+        6688,
+        8010,
+        10110,
+        8308
+      ],
+      "local_ipv4_addresses": [
+        "192.168.1.102"
+      ],
+      "vlan_mode": "operating-system interface",
+      "source_networks": [],
+      "network_adapt": {
+        "state": "idle",
+        "interface": "",
+        "radar_ip": "",
+        "requested_host_ip": "",
+        "vlan_id": null,
+        "message": "\u7b49\u5f85\u70b9\u4e91\u6570\u636e\u6d41"
+      }
+    },
+    "native_plugins": {
+      "loaded": [
+        {
+          "name": "Hesai SDK 2.0 raw adapter",
+          "vendor": "Hesai",
+          "abi": 2,
+          "feed_calls": 0,
+          "frames": 0,
+          "last_points": 0,
+          "last_model": "",
+          "last_nonzero_points": 0,
+          "last_bounds": null,
+          "last_ring_range": null,
+          "dropped_frames": 0,
+          "dropped_packets": 0,
+          "decode_errors": 0,
+          "last_decode_error": "",
+          "packet_queue_depth": 0,
+          "last_feed_result": null,
+          "last_frame_timestamp_ns": 0,
+          "instances": []
+        },
+        {
+          "name": "Huawei L306/D3 calibrated adapter",
+          "vendor": "Huawei",
+          "abi": 2,
+          "feed_calls": 0,
+          "frames": 0,
+          "last_points": 0,
+          "last_model": "",
+          "last_nonzero_points": 0,
+          "last_bounds": null,
+          "last_ring_range": null,
+          "dropped_frames": 0,
+          "dropped_packets": 0,
+          "decode_errors": 0,
+          "last_decode_error": "",
+          "packet_queue_depth": 0,
+          "last_feed_result": null,
+          "last_frame_timestamp_ns": 0,
+          "instances": []
+        },
+        {
+          "name": "RoboSense rs_driver adapter",
+          "vendor": "RoboSense",
+          "abi": 2,
+          "feed_calls": 0,
+          "frames": 0,
+          "last_points": 0,
+          "last_model": "",
+          "last_nonzero_points": 0,
+          "last_bounds": null,
+          "last_ring_range": null,
+          "dropped_frames": 0,
+          "dropped_packets": 0,
+          "decode_errors": 0,
+          "last_decode_error": "",
+          "packet_queue_depth": 0,
+          "last_feed_result": null,
+          "last_frame_timestamp_ns": 0,
+          "instances": []
+        },
+        {
+          "name": "Seyond Inno SDK raw adapter",
+          "vendor": "Seyond",
+          "abi": 2,
+          "feed_calls": 0,
+          "frames": 0,
+          "last_points": 0,
+          "last_model": "",
+          "last_nonzero_points": 0,
+          "last_bounds": null,
+          "last_ring_range": null,
+          "dropped_frames": 0,
+          "dropped_packets": 0,
+          "decode_errors": 0,
+          "last_decode_error": "",
+          "packet_queue_depth": 0,
+          "last_feed_result": null,
+          "last_frame_timestamp_ns": 0,
+          "instances": []
+        },
+        {
+          "name": "Velodyne ros-drivers raw adapter",
+          "vendor": "Velodyne",
+          "abi": 2,
+          "feed_calls": 0,
+          "frames": 0,
+          "last_points": 0,
+          "last_model": "",
+          "last_nonzero_points": 0,
+          "last_bounds": null,
+          "last_ring_range": null,
+          "dropped_frames": 0,
+          "dropped_packets": 0,
+          "decode_errors": 0,
+          "last_decode_error": "",
+          "packet_queue_depth": 0,
+          "last_feed_result": null,
+          "last_frame_timestamp_ns": 0,
+          "instances": []
+        }
+      ],
+      "errors": []
+    },
+    "pcap": {
+      "state": "idle",
+      "active": false,
+      "name": "",
+      "loop": true,
+      "record": 0,
+      "records": 0,
+      "progress": 0,
+      "duration_seconds": 0,
+      "accepted_packets": 0,
+      "completed_loops": 0,
+      "error": ""
+    },
+    "gateway": {
+      "config": {
+        "enabled": false,
+        "target_ip": "",
+        "target_port": 0,
+        "source_ports": []
+      },
+      "forwarding": {
+        "active": false,
+        "packets": 0,
+        "bytes": 0,
+        "dropped_packets": 0,
+        "last_error": "",
+        "last_forward_seconds": null
+      },
+      "recording": {
+        "active": false,
+        "state": "idle",
+        "error": "",
+        "directory": "",
+        "current_file": "",
+        "files": [],
+        "packets": 0,
+        "bytes": 0,
+        "dropped_packets": 0,
+        "queued_packets": 0,
+        "free_bytes": 0,
+        "split_bytes": 1073741824
+      }
+    },
+    "ptp": {
+      "available": false,
+      "config": {
+        "enabled": false,
+        "interface": "",
+        "role": "master",
+        "transport": "L2",
+        "timestamping": "auto",
+        "domain": 0,
+        "priority1": 128,
+        "delay_mechanism": "E2E"
+      },
+      "active": false,
+      "state": "stopped",
+      "error": "",
+      "effective_timestamping": "",
+      "uptime_seconds": 0,
+      "ptp4l_pid": null,
+      "phc2sys_pid": null,
+      "interfaces": [
+        {
+          "name": "ethernet_0",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_1",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_2",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_3",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_8",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_9",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_10",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_11",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_12",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_13",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_14",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_15",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_16",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_32768",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_32769",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_32770",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_32771",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_32772",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_32773",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ethernet_32774",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "ppp_32768",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "loopback_0",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "tunnel_32512",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "tunnel_32513",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "tunnel_32514",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "tunnel_32768",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "tunnel_32769",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "tunnel_32770",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        },
+        {
+          "name": "tunnel_32771",
+          "state": "unknown",
+          "phc": "",
+          "hardware_timestamping": false
+        }
+      ],
+      "logs": []
+    },
+    "gateway_only": false,
+    "network_adapt": {
+      "state": "idle",
+      "interface": "",
+      "radar_ip": "",
+      "requested_host_ip": "",
+      "vlan_id": null,
+      "message": "\u7b49\u5f85\u70b9\u4e91\u6570\u636e\u6d41"
+    },
+    "capabilities": {
+      "ptp_supported": false,
+      "ptp_disabled_reason": "Windows \u5e73\u53f0\u6682\u4e0d\u652f\u6301\u786c\u4ef6 PTP \u4e3b\u65f6\u949f\u63a7\u5236"
+    },
+    "diagnostics": {
+      "point_frame_seen": false,
+      "nic_traffic_seen": false,
+      "radar_flow_seen": false,
+      "model_identified": false,
+      "calibration_ready": true
+    }
+  },
+  "http_pages": "PASS",
+  "success": true
+}

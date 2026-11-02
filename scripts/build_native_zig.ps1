@@ -22,8 +22,12 @@ $ninjaPath = Join-Path $ninjaDirectory "ninja.exe"
 New-Item -ItemType Directory -Path $toolRoot -Force | Out-Null
 $arWrapper = Join-Path $toolRoot "zig-ar.cmd"
 $ranlibWrapper = Join-Path $toolRoot "zig-ranlib.cmd"
+$ccWrapper = Join-Path $toolRoot "zig-cc.cmd"
+$cxxWrapper = Join-Path $toolRoot "zig-cxx.cmd"
 [System.IO.File]::WriteAllText($arWrapper, "@echo off`r`n`"$zigPath`" ar %*`r`n", [System.Text.Encoding]::ASCII)
 [System.IO.File]::WriteAllText($ranlibWrapper, "@echo off`r`n`"$zigPath`" ranlib %*`r`n", [System.Text.Encoding]::ASCII)
+[System.IO.File]::WriteAllText($ccWrapper, "@echo off`r`n`"$zigPath`" cc -target x86_64-windows-gnu -mcpu=x86_64 %*`r`n", [System.Text.Encoding]::ASCII)
+[System.IO.File]::WriteAllText($cxxWrapper, "@echo off`r`n`"$zigPath`" c++ -target x86_64-windows-gnu -mcpu=x86_64 %*`r`n", [System.Text.Encoding]::ASCII)
 
 & (Join-Path $PSScriptRoot "prepare_hesai_sdk.ps1")
 & (Join-Path $PSScriptRoot "prepare_seyond_sdk.ps1")
@@ -33,14 +37,14 @@ $configure = @(
     "-B", $buildRoot,
     "-G", "Ninja",
     "-DCMAKE_MAKE_PROGRAM=$ninjaPath",
-    "-DCMAKE_C_COMPILER=$zigPath",
-    "-DCMAKE_C_COMPILER_ARG1=cc",
-    "-DCMAKE_CXX_COMPILER=$zigPath",
-    "-DCMAKE_CXX_COMPILER_ARG1=c++",
+    "-DCMAKE_C_COMPILER=$ccWrapper",
+    "-DCMAKE_CXX_COMPILER=$cxxWrapper",
     "-DCMAKE_AR=$arWrapper",
     "-DCMAKE_RANLIB=$ranlibWrapper",
     "-DCMAKE_CXX_COMPILER_AR=$arWrapper",
     "-DCMAKE_CXX_COMPILER_RANLIB=$ranlibWrapper",
+    "-DCMAKE_SYSTEM_NAME=Windows",
+    "-DCMAKE_SYSTEM_PROCESSOR=x86_64",
     "-DCMAKE_POLICY_VERSION_MINIMUM=3.5",
     "-DCMAKE_BUILD_TYPE=Release"
 )

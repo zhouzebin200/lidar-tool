@@ -1,0 +1,36 @@
+Nuitka-Options: Used command line options:
+Nuitka-Options:   --mode=onefile --mingw64 --assume-yes-for-downloads --windows-console-mode=disable --windows-uac-admin --include-package=ulv --jobs=4 --output-dir=C:\ULV-QA-20261102\build\unlicensed-onefile --output-filename=Lijian-LidarTool-Windows-x64.exe --report=C:\ULV-QA-20261102\build\unlicensed-onefile\compilation-report.xml --user-package-configuration-file=C:\ULV-QA-20261102\packaging\ulv.nuitka-package.config.yml --include-data-dir=C:\ULV-QA-20261102\web=web --include-data-dir=C:\ULV-QA-20261102\corrections=corrections --nofollow-import-to=unittest,setuptools,licensing,tests --include-data-files=C:\ULV-QA-20261102\corrections\seyond\Robin-W.bin=corrections/seyond/Robin-W.bin C:\ULV-QA-20261102\run.py
+Nuitka: Starting Python compilation with:
+Nuitka:   Version '4.3' on Python 3.12 (flavor 'CPython Official') commercial grade 'not installed'.
+Nuitka: Detected 1 module(s) with mismatching checksum in 'C:\ULV-QA-20261102\packaging\ulv.nuitka-package.config.yml': ulv
+Nuitka:WARNING: Cannot validate schema due to lack of 'jsonschema' package.
+Nuitka: standard.nuitka-package.config.yml: module 'ulv' config value of 'dlls' 'relative_path' should be a relative posix path, without '..' paths, not '../plugins'.
+Nuitka: standard.nuitka-package.config.yml: module 'ulv' config value of 'dlls' 'relative_path' should be a relative posix path, without '..' paths, not '../vendor/npcap'.
+Nuitka-Plugins:dll-files: Found 8 files DLLs from ulv installation.
+Nuitka: Completed Python level compilation and optimization.
+Nuitka: Generating source code for C backend compiler.
+Nuitka: Running data composer tool for optimal constant value handling.
+Nuitka: Running C compilation via Scons.
+Nuitka-Scons: Backend C compiler: gcc (gcc 15.2.0).
+Nuitka-Scons: Backend C linking with 39 files (no progress information available for this stage).
+Nuitka-Scons: Compiled 39 C files using ccache.
+Nuitka-Scons: Cached C files (using ccache) with result 'cache hit': 38
+Nuitka-Scons: Cached C files (using ccache) with result 'cache miss': 1
+Nuitka-Options: Included data file 'corrections\seyond\Robin-W.bin' due to specified data file 'C:\ULV-QA-20261102\corrections\seyond\Robin-W.bin=corrections/seyond/Robin-W.bin' on command line.
+Nuitka-Options: Included 13 data files due to specified data dir 'C:\ULV-QA-20261102\web' on command line.
+Nuitka-Options: Included 12 data files due to specified data dir 'C:\ULV-QA-20261102\corrections' on command line.
+Nuitka-Onefile: Creating single file from dist folder, this may take a while.
+Nuitka-Onefile: Running bootstrap binary compilation via Scons.
+Nuitka-Onefile: Using compression for onefile payload.
+Nuitka-Onefile: Onefile payload compression ratio (28.58%) size 42764132 to 12222880.
+Nuitka-Inclusion:WARNING: Cannot find Windows Runtime DLLs to include, requiring them to be installed on target systems.
+Nuitka-Scons: Onefile C compiler: gcc (gcc 15.2.0).
+Nuitka-Scons: Onefile C linking.
+Nuitka-Scons: Compiled 1 C files using ccache.
+Nuitka-Scons: Cached C files (using ccache) with result 'cache miss': 1
+Nuitka-Onefile: Keeping onefile build directory 'C:\ULV-QA-20261102\build\unlicensed-onefile\run.onefile-build'.
+Nuitka: Keeping dist folder 'C:\ULV-QA-20261102\build\unlicensed-onefile\run.dist' for inspection, no need to use it.
+Nuitka: Keeping build directory 'C:\ULV-QA-20261102\build\unlicensed-onefile\run.build'.
+Nuitka: Successfully created 'C:\ULV-QA-20261102\build\unlicensed-onefile\Lijian-LidarTool-Windows-x64.exe'.
+Nuitka-Reports: Compilation report written to file 'C:\ULV-QA-20261102\build\unlicensed-onefile\compilation-report.xml'.
+C:\ULV-QA-20261102\dist\unlicensed-x64\Lijian-LidarTool-Windows-x64.exe

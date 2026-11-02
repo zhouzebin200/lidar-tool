@@ -43,7 +43,7 @@ def ensure_windows_admin() -> bool:
     """
     if sys.platform != "win32" or windows_is_admin():
         return True
-    if getattr(sys, "frozen", False):
+    if getattr(sys, "frozen", False) or "__compiled__" in globals():
         executable = sys.executable
         arguments = sys.argv[1:]
     else:

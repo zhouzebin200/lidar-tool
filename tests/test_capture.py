@@ -1,8 +1,10 @@
 import socket
 import struct
 import unittest
+from dataclasses import replace
 
 from ulv.capture import PacketCapture, build_arp_reply, parse_ethernet_arp, parse_ethernet_udp
+from ulv.detection import detect_packet
 from ulv.registry import DeviceRegistry
 
 
@@ -98,6 +100,26 @@ class CaptureParserTests(unittest.TestCase):
             capture._arp_is_safe(request, "Intel Wi-Fi Adapter"),
             (False, "non-wired-interface"),
         )
+
+    def test_same_mac_new_source_ip_refreshes_cached_device(self):
+        registry = DeviceRegistry()
+        capture = PacketCapture(registry, lambda *_args: None)
+        payload = bytes.fromhex("ee ff 03 02") + bytes(80)
+        detection = detect_packet(payload, 2368)
+        first_packet = parse_ethernet_udp(ethernet_udp(payload))
+        first, cached = capture._device_for(first_packet, payload, detection)
+        self.assertFalse(cached)
+        self.assertTrue(capture._device_for(first_packet, payload, detection)[1])
+
+        next_packet = replace(first_packet, source_ip="192.168.3.101")
+        second, cached = capture._device_for(next_packet, payload, detection)
+        self.assertFalse(cached)
+        self.assertEqual(first.id, second.id)
+        self.assertEqual(second.ip, "192.168.3.101")
+        self.assertEqual(registry.list_public()[0]["ip"], "192.168.3.101")
+        returned, cached = capture._device_for(first_packet, payload, detection)
+        self.assertFalse(cached)
+        self.assertEqual(returned.ip, "192.168.1.201")
 
 
 if __name__ == "__main__":

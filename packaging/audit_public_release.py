@@ -3,8 +3,11 @@
 from __future__ import annotations
 
 import argparse
+import io
 from pathlib import Path
 import sys
+import tempfile
+import zipfile
 
 
 BLOCKED_SUFFIXES = {
@@ -41,6 +44,42 @@ def contains_secret_marker(path: Path) -> bool:
     return False
 
 
+def inspect_container(data: bytes, label: str, depth: int = 0) -> list[str]:
+    if depth > 4:
+        return [f"archive nesting limit exceeded: {label}"]
+    problems = []
+    members = []
+    try:
+        if zipfile.is_zipfile(io.BytesIO(data)):
+            with zipfile.ZipFile(io.BytesIO(data)) as archive:
+                if sum(item.file_size for item in archive.infolist()) > 256 * 1024 * 1024:
+                    return [f"archive inspection size limit exceeded: {label}"]
+                members = [(item.filename, archive.read(item)) for item in archive.infolist() if not item.is_dir()]
+        elif data.startswith(b"MZ") and b"MEI\x0c\x0b\x0a\x0b\x0e" in data[-8192:]:
+            from PyInstaller.archive.readers import CArchiveReader
+            with tempfile.TemporaryDirectory(prefix="ulv-audit-") as temporary:
+                executable = Path(temporary) / "bundle.exe"
+                executable.write_bytes(data)
+                archive = CArchiveReader(str(executable))
+                if sum(entry[2] for entry in archive.toc.values()) > 256 * 1024 * 1024:
+                    return [f"EXE inspection size limit exceeded: {label}"]
+                members = [(name, archive.extract(name)) for name, entry in archive.toc.items() if entry[-1] not in ("o", "d")]
+        elif label.lower().endswith(".zip"):
+            return [f"invalid ZIP archive: {label}"]
+    except Exception as error:
+        return [f"cannot inspect container {label}: {type(error).__name__}"]
+    for name, content in members:
+        parts = name.replace("\\", "/").lower().split("/")
+        location = f"{label}!{name}"
+        if (set(parts) & (BLOCKED_NAMES | BLOCKED_PARTS)
+                or Path(parts[-1]).suffix in BLOCKED_SUFFIXES):
+            problems.append(f"blocked archive member: {location}")
+        elif any(marker in content for marker in SECRET_MARKERS):
+            problems.append(f"possible embedded private material: {location}")
+        problems.extend(inspect_container(content, location, depth + 1))
+    return problems
+
+
 def audit(root: Path) -> list[str]:
     root = root.resolve()
     if not root.is_dir():
@@ -70,6 +109,11 @@ def audit(root: Path) -> list[str]:
             continue
         if has_secret:
             problems.append(f"possible embedded private material: {relative}")
+        try:
+            if path.suffix.lower() in (".zip", ".exe"):
+                problems.extend(inspect_container(path.read_bytes(), str(relative)))
+        except OSError as error:
+            problems.append(f"cannot inspect {relative}: {error}")
     return sorted(set(problems))
 
 

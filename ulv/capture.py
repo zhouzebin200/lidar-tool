@@ -14,8 +14,8 @@ import threading
 import time
 from typing import Callable
 
-from .detection import detect_packet, normalize_lidar_payload
-from .registry import DeviceRegistry
+from .detection import Detection, detect_packet, normalize_lidar_payload
+from .registry import Device, DeviceRegistry
 
 
 PCAP_ERRBUF_SIZE = 256
@@ -379,7 +379,7 @@ class PacketCapture:
         self._flow_lock = threading.Lock()
         self._dedupe: dict[bytes, int] = {}
         self._detection_cache: dict[tuple, object] = {}
-        self._device_cache: dict[tuple[str, str], object] = {}
+        self._device_cache: dict[tuple[str, str, str], Device] = {}
         self._arp_requests = 0
         self._arp_replies = 0
         self._arp_candidates: dict[tuple, dict] = {}
@@ -417,6 +417,19 @@ class PacketCapture:
         if not self.active:
             self.error = "no Ethernet capture interface could be opened; administrator/capture permission may be required"
         return self.active
+
+    def _device_for(self, packet: CapturedUdp, payload: bytes, detection: Detection) -> tuple[Device, bool]:
+        identity = packet.source_mac.lower() if packet.source_mac else packet.source_ip
+        key = (detection.vendor.lower(), identity, packet.source_ip)
+        device = self._device_cache.get(key)
+        if device is None or device.ip != packet.source_ip:
+            device = self.registry.observe(
+                packet.source_ip, packet.source_port, packet.destination_port,
+                len(payload), detection, source_mac=packet.source_mac,
+            )
+            self._device_cache[key] = device
+            return device, False
+        return device, True
 
     @staticmethod
     def _wired_interface(description: str) -> bool:
@@ -673,20 +686,8 @@ class PacketCapture:
             flow["bytes"] += len(payload)
             flow["last_seen_ns"] = now_ns
             self.accepted_packet_count += 1
-            identity = packet.source_mac.lower() if packet.source_mac else packet.source_ip
-            device_key = (detection.vendor.lower(), identity)
-            device = self._device_cache.get(device_key)
-            if device is None:
-                device = self.registry.observe(
-                    packet.source_ip,
-                    packet.source_port,
-                    packet.destination_port,
-                    len(payload),
-                    detection,
-                    source_mac=packet.source_mac,
-                )
-                self._device_cache[device_key] = device
-            else:
+            device, cached = self._device_for(packet, payload, detection)
+            if cached:
                 pending = registry_pending.get(device.id)
                 if pending is None:
                     pending = [device, 0, 0, now_ns]
