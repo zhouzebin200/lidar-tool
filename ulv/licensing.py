@@ -13,6 +13,9 @@ from pathlib import Path
 import re
 import socket
 import sys
+import tempfile
+import threading
+import time
 
 from cryptography.exceptions import InvalidSignature
 from cryptography.hazmat.primitives.asymmetric.ed25519 import Ed25519PublicKey
@@ -81,7 +84,7 @@ def machine_code() -> str:
 
 
 def executable_directory() -> Path:
-    if getattr(sys, "frozen", False):
+    if getattr(sys, "frozen", False) or "__compiled__" in globals():
         return Path(sys.executable).resolve().parent
     return Path(__file__).resolve().parents[1]
 
@@ -98,6 +101,8 @@ def license_paths() -> tuple[Path, ...]:
 def verify_license_text(text: str, expected_machine: str | None = None) -> LicenseResult:
     expected_machine = expected_machine or machine_code()
     try:
+        if len(text) > 16384:
+            return LicenseResult(False, "许可证内容过长")
         prefix, payload_text, signature_text = text.strip().split(".")
         if prefix != LICENSE_PREFIX:
             return LicenseResult(False, "许可证版本不受支持")
@@ -108,16 +113,25 @@ def verify_license_text(text: str, expected_machine: str | None = None) -> Licen
         payload = json.loads(payload_bytes.decode("utf-8"))
     except (ValueError, UnicodeDecodeError, json.JSONDecodeError, InvalidSignature):
         return LicenseResult(False, "许可证签名无效或内容损坏")
+    if not isinstance(payload, dict) or type(payload.get("version")) is not int or payload["version"] != 1:
+        return LicenseResult(False, "许可证内容或版本无效")
     if payload.get("product") != PRODUCT:
         return LicenseResult(False, "许可证不属于本产品")
     if payload.get("machine") != expected_machine:
         return LicenseResult(False, "许可证与本机机器码不匹配")
-    expires = payload.get("expires")
-    if expires:
-        try:
-            expiry = datetime.fromisoformat(str(expires).replace("Z", "+00:00"))
-        except ValueError:
-            return LicenseResult(False, "许可证有效期格式错误")
+    try:
+        issued = datetime.fromisoformat(payload["issued"].replace("Z", "+00:00"))
+        if issued.tzinfo is None:
+            raise ValueError("timezone missing")
+        if issued.timestamp() > datetime.now(timezone.utc).timestamp() + 300:
+            return LicenseResult(False, "系统时间早于许可证签发时间，请校准系统时间")
+        expires = payload.get("expires")
+        expiry = datetime.fromisoformat(expires.replace("Z", "+00:00")) if expires is not None else None
+        if expiry is not None and (expiry.tzinfo is None or expiry <= issued):
+            raise ValueError("invalid expiry")
+    except (ValueError, TypeError, AttributeError, KeyError, OverflowError):
+        return LicenseResult(False, "许可证有效期格式错误")
+    if expiry is not None:
         if datetime.now(timezone.utc) >= expiry:
             return LicenseResult(False, "许可证已过期", payload)
     return LicenseResult(True, "许可证有效", payload)
@@ -130,7 +144,7 @@ def find_license() -> LicenseResult:
             continue
         try:
             result = verify_license_text(path.read_text(encoding="ascii"))
-        except OSError as exc:
+        except (OSError, UnicodeError) as exc:
             last = LicenseResult(False, f"无法读取许可证：{exc}", path=path)
             continue
         if result.valid:
@@ -140,10 +154,10 @@ def find_license() -> LicenseResult:
 
 
 def install_license(value: str) -> LicenseResult:
-    source = Path(value)
     try:
+        source = Path(value)
         text = source.read_text(encoding="ascii") if source.is_file() else value
-    except (OSError, ValueError):
+    except (OSError, ValueError, UnicodeError):
         text = value
     result = verify_license_text(text)
     if not result.valid:
@@ -157,6 +171,86 @@ def install_license(value: str) -> LicenseResult:
         except OSError as exc:
             errors.append(str(exc))
     return LicenseResult(False, "许可证无法保存：" + "; ".join(errors), result.payload)
+
+
+def _clock_data(data: bytes, protect: bool) -> bytes:
+    if os.name != "nt":
+        return data
+
+    class Blob(ctypes.Structure):
+        _fields_ = [("size", ctypes.c_uint32), ("data", ctypes.POINTER(ctypes.c_char))]
+
+    buffer = ctypes.create_string_buffer(data)
+    source = Blob(len(data), ctypes.cast(buffer, ctypes.POINTER(ctypes.c_char)))
+    output = Blob()
+    crypt32 = ctypes.WinDLL("crypt32", use_last_error=True)
+    function = crypt32.CryptProtectData if protect else crypt32.CryptUnprotectData
+    if not function(ctypes.byref(source), None, None, None, None, 1, ctypes.byref(output)):
+        raise ctypes.WinError(ctypes.get_last_error())
+    try:
+        return ctypes.string_at(output.data, output.size)
+    finally:
+        kernel32 = ctypes.WinDLL("kernel32", use_last_error=True)
+        kernel32.LocalFree.argtypes = [ctypes.c_void_p]
+        kernel32.LocalFree.restype = ctypes.c_void_p
+        kernel32.LocalFree(output.data)
+
+
+class LicenseSession:
+    """Revalidate permissions and keep a per-user, DPAPI-protected clock watermark."""
+
+    def __init__(self) -> None:
+        self.result = LicenseResult(False, "尚未检查许可证")
+        self._lock = threading.Lock()
+        self._next_check = 0.0
+        self._last_wall = 0.0
+        self._last_monotonic = 0.0
+        self._next_save = 0.0
+        self._clock_path = license_paths()[-1].parent / "license-clock.bin"
+
+    def check(self, force: bool = False) -> LicenseResult:
+        with self._lock:
+            tick = time.monotonic()
+            if not force and tick < self._next_check:
+                return self.result
+            self._next_check = tick + 1
+            result = find_license()
+            if result.valid:
+                try:
+                    now = datetime.now(timezone.utc).timestamp()
+                    floor = self._last_wall + max(0, tick - self._last_monotonic) if self._last_wall else 0
+                    if self._clock_path.exists():
+                        state = json.loads(_clock_data(self._clock_path.read_bytes(), False))
+                        if state["machine"] != machine_code():
+                            raise ValueError("clock machine mismatch")
+                        floor = max(floor, float(state["last_seen"]))
+                    if now < floor - 300:
+                        result = LicenseResult(False, "检测到系统时间回拨，请校准时间后重启")
+                    else:
+                        self._last_wall = max(now, floor)
+                        self._last_monotonic = tick
+                        if tick >= self._next_save:
+                            data = json.dumps({"machine": machine_code(), "last_seen": self._last_wall}).encode()
+                            self._clock_path.parent.mkdir(parents=True, exist_ok=True)
+                            temporary = None
+                            try:
+                                with tempfile.NamedTemporaryFile(dir=self._clock_path.parent, delete=False) as stream:
+                                    temporary = Path(stream.name)
+                                    stream.write(_clock_data(data, True))
+                                temporary.replace(self._clock_path)
+                            finally:
+                                if temporary is not None:
+                                    temporary.unlink(missing_ok=True)
+                            self._next_save = tick + 60
+                except (OSError, ValueError, TypeError, KeyError, UnicodeError):
+                    result = LicenseResult(False, "授权时间记录无法读取或保存，请联系管理员")
+            self.result = result
+            return result
+
+    def valid(self) -> bool:
+        return self.check().valid
+
+    # shortcut: deleting the watermark before restarting can defeat offline rollback history; use server leases for stronger enforcement.
 
 
 def write_machine_code_file() -> Path:

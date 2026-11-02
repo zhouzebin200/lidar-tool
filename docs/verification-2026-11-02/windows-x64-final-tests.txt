@@ -1,0 +1,104 @@
+test_arp_assist_accepts_only_cross_subnet_wired_request (test_capture.CaptureParserTests.test_arp_assist_accepts_only_cross_subnet_wired_request) ... ok
+test_extracts_8021q_vlan (test_capture.CaptureParserTests.test_extracts_8021q_vlan) ... ok
+test_extracts_arbitrary_udp_destination (test_capture.CaptureParserTests.test_extracts_arbitrary_udp_destination) ... ok
+test_extracts_qinq_vlan_stack (test_capture.CaptureParserTests.test_extracts_qinq_vlan_stack) ... ok
+test_parses_arp_request_and_preserves_vlan_in_reply (test_capture.CaptureParserTests.test_parses_arp_request_and_preserves_vlan_in_reply) ... ok
+test_same_mac_new_source_ip_refreshes_cached_device (test_capture.CaptureParserTests.test_same_mac_new_source_ip_refreshes_cached_device) ... ok
+test_at128_short_status_packet_is_not_point_cloud (test_detection.DetectionTests.test_at128_short_status_packet_is_not_point_cloud) ... ok
+test_automatic_network_mode_uses_all_interfaces_and_sdk_ports (test_detection.DetectionTests.test_automatic_network_mode_uses_all_interfaces_and_sdk_ports) ... ok
+test_browser_reconnect_cancels_idle_shutdown (test_detection.DetectionTests.test_browser_reconnect_cancels_idle_shutdown) ... ok
+test_config_rejects_invalid_port (test_detection.DetectionTests.test_config_rejects_invalid_port) ... ok
+test_config_validation_and_cidr_normalization (test_detection.DetectionTests.test_config_validation_and_cidr_normalization) ... ok
+test_hesai_protocol_detection (test_detection.DetectionTests.test_hesai_protocol_detection) ... ok
+test_huawei_l306_precedes_generic_hesai_port_fallback (test_detection.DetectionTests.test_huawei_l306_precedes_generic_hesai_port_fallback) ... ok
+test_last_browser_disconnect_stops_service_after_grace_period (test_detection.DetectionTests.test_last_browser_disconnect_stops_service_after_grace_period) ... ok
+test_registry_accepts_sdk_confirmed_model (test_detection.DetectionTests.test_registry_accepts_sdk_confirmed_model) ... ok
+test_registry_groups_robosense_msop_and_difop (test_detection.DetectionTests.test_registry_groups_robosense_msop_and_difop) ... ok
+test_registry_keeps_stable_device_id (test_detection.DetectionTests.test_registry_keeps_stable_device_id) ... ok
+test_registry_public_list_contains_only_online_devices (test_detection.DetectionTests.test_registry_public_list_contains_only_online_devices) ... ok
+test_registry_tracks_same_mac_across_ip_subnets (test_detection.DetectionTests.test_registry_tracks_same_mac_across_ip_subnets) ... ok
+test_robosense_airy_detection_uses_lidar_type (test_detection.DetectionTests.test_robosense_airy_detection_uses_lidar_type) ... ok
+test_robosense_airy_lite_detection (test_detection.DetectionTests.test_robosense_airy_lite_detection) ... ok
+test_robosense_emx_msop_and_periodic_difop_share_device (test_detection.DetectionTests.test_robosense_emx_msop_and_periodic_difop_share_device) ... ok
+test_robosense_emx_sequence_length_envelope_is_removed (test_detection.DetectionTests.test_robosense_emx_sequence_length_envelope_is_removed) ... ok
+test_robosense_m1_detection (test_detection.DetectionTests.test_robosense_m1_detection) ... ok
+test_robosense_m2_transport_envelope_is_removed (test_detection.DetectionTests.test_robosense_m2_transport_envelope_is_removed) ... ok
+test_robosense_m2_wrapped_difop_identifier_is_normalized (test_detection.DetectionTests.test_robosense_m2_wrapped_difop_identifier_is_normalized) ... ok
+test_ruby_80_uses_four_block_layout (test_detection.DetectionTests.test_ruby_80_uses_four_block_layout) ... ok
+test_ruby_plus_128_uses_block_layout_not_shared_magic (test_detection.DetectionTests.test_ruby_plus_128_uses_block_layout_not_shared_magic) ... ok
+test_seyond_header_identifies_model_on_arbitrary_port (test_detection.DetectionTests.test_seyond_header_identifies_model_on_arbitrary_port) ... ok
+test_seyond_header_rejects_wrong_declared_size (test_detection.DetectionTests.test_seyond_header_rejects_wrong_declared_size) ... ok
+test_start_does_not_block_ui_during_network_recovery (test_detection.DetectionTests.test_start_does_not_block_ui_during_network_recovery) ... ok
+test_transport_envelope_with_wrong_length_is_not_removed (test_detection.DetectionTests.test_transport_envelope_with_wrong_length_is_not_removed) ... ok
+test_unknown_custom_port_is_ignored (test_detection.DetectionTests.test_unknown_custom_port_is_ignored) ... ok
+test_velodyne_position_packet_detection (test_detection.DetectionTests.test_velodyne_position_packet_detection) ... ok
+test_velodyne_vlp16_product_id_detection (test_detection.DetectionTests.test_velodyne_vlp16_product_id_detection) ... ok
+test_velodyne_vls128_four_bank_detection_without_product_id (test_detection.DetectionTests.test_velodyne_vls128_four_bank_detection_without_product_id) ... ok
+test_forward_preserves_original_destination_port_when_zero (test_gateway.GatewayTests.test_forward_preserves_original_destination_port_when_zero) ... ok
+test_gateway_rejects_invalid_target (test_gateway.GatewayTests.test_gateway_rejects_invalid_target) ... ok
+test_pcap_recorder_writes_classic_ethernet_file (test_gateway.GatewayTests.test_pcap_recorder_writes_classic_ethernet_file) ... ok
+test_synthetic_socket_packet_is_replayable_ethernet (test_gateway.GatewayTests.test_synthetic_socket_packet_is_replayable_ethernet) ... ok
+test_connection_failure (test_hesai_ptc.TestHesaiPtc.test_connection_failure) ... ok
+test_ft120_pure_solid_state (test_hesai_ptc.TestHesaiPtc.test_ft120_pure_solid_state)
+Test FT120 solid-state Flash LiDAR: 0 RPM, humidity, no 0x27 monitor. ... ok
+test_ot128_mechanical_360 (test_hesai_ptc.TestHesaiPtc.test_ot128_mechanical_360)
+Test OT128 mechanical 360 flagship: 8 temps, humidity, 600 RPM, OT128 layout. ... ok
+test_ptc_2_0_wu_framing (test_hesai_ptc.TestHesaiPtc.test_ptc_2_0_wu_framing)
+Test PTC 2.0 ('Wu' / 0x57 0x75) 12-byte header unpacking. ... ok
+test_ptc_query_all (test_hesai_ptc.TestHesaiPtc.test_ptc_query_all) ... ok
+test_scraper_fallback_when_ptc_unavailable (test_hesai_ptc.TestHesaiPtc.test_scraper_fallback_when_ptc_unavailable) ... ok
+test_scraper_integration_with_ptc (test_hesai_ptc.TestHesaiPtc.test_scraper_integration_with_ptc) ... ok
+test_decoder_and_queued_frames_stop_when_license_is_revoked (test_license_runtime.LicenseRuntimeTests.test_decoder_and_queued_frames_stop_when_license_is_revoked) ... ok
+test_http_rejects_static_api_and_replay_after_revocation (test_license_runtime.LicenseRuntimeTests.test_http_rejects_static_api_and_replay_after_revocation) ... ok
+test_corrupt_clock_fails_closed (test_licensing.LicensingTests.test_corrupt_clock_fails_closed) ... ok
+test_corrupt_license_file_and_invalid_install_do_not_crash (test_licensing.LicensingTests.test_corrupt_license_file_and_invalid_install_do_not_crash) ... ok
+test_dpapi_round_trip (test_licensing.LicensingTests.test_dpapi_round_trip) ... ok
+test_in_process_clock_cannot_be_reset_by_deleting_state (test_licensing.LicensingTests.test_in_process_clock_cannot_be_reset_by_deleting_state) ... ok
+test_licensed_entry_blocks_startup_and_passes_session (test_licensing.LicensingTests.test_licensed_entry_blocks_startup_and_passes_session) ... ok
+test_machine_code_has_stable_display_format (test_licensing.LicensingTests.test_machine_code_has_stable_display_format) ... ok
+test_modified_license_is_rejected (test_licensing.LicensingTests.test_modified_license_is_rejected) ... ok
+test_rejects_invalid_signed_fields_and_expired_license (test_licensing.LicensingTests.test_rejects_invalid_signed_fields_and_expired_license) ... ok
+test_runtime_revokes_deleted_license_and_detects_clock_rollback (test_licensing.LicensingTests.test_runtime_revokes_deleted_license_and_detects_clock_rollback) ... ok
+test_signed_license_is_machine_bound (test_licensing.LicensingTests.test_signed_license_is_machine_bound) ... ok
+test_extract_hesai_data (test_lidar_web_scraper.TestLidarWebScraper.test_extract_hesai_data) ... ok
+test_generic_html_extraction (test_lidar_web_scraper.TestLidarWebScraper.test_generic_html_extraction) ... ok
+test_pandar40_prefers_web_data_over_at128_ptc (test_lidar_web_scraper.TestLidarWebScraper.test_pandar40_prefers_web_data_over_at128_ptc) ... ok
+test_all_bundled_velodyne_models_load_calibration_and_decode (test_native_plugins.NativePluginTests.test_all_bundled_velodyne_models_load_calibration_and_decode) ... ok
+test_hesai_pandarqt_fallback_correction_resolved (test_native_plugins.NativePluginTests.test_hesai_pandarqt_fallback_correction_resolved) ... ok
+test_huawei_l306_uses_demo_packet_layout_scale_and_calibration (test_native_plugins.NativePluginTests.test_huawei_l306_uses_demo_packet_layout_scale_and_calibration) ... ok
+test_native_frame_worker_serializes_points (test_native_plugins.NativePluginTests.test_native_frame_worker_serializes_points) ... ok
+test_velodyne_vlp16_decodes_complete_revolution (test_native_plugins.NativePluginTests.test_velodyne_vlp16_decodes_complete_revolution) ... ok
+test_vendor_plugins_load_through_stable_abi (test_native_plugins.NativePluginTests.test_vendor_plugins_load_through_stable_abi) ... ok
+test_apply_journals_then_restore_removes_journal (test_network_bootstrap.NetworkBootstrapTests.test_apply_journals_then_restore_removes_journal) ... ok
+test_empty_recovery_is_a_noop (test_network_bootstrap.NetworkBootstrapTests.test_empty_recovery_is_a_noop) ... ok
+test_extracts_only_a_valid_npcap_guid (test_network_bootstrap.NetworkBootstrapTests.test_extracts_only_a_valid_npcap_guid) ... ok
+test_host_ip_is_derived_from_detected_flow (test_network_bootstrap.NetworkBootstrapTests.test_host_ip_is_derived_from_detected_flow) ... ok
+test_recovery_record_validation_rejects_script_fields (test_network_bootstrap.NetworkBootstrapTests.test_recovery_record_validation_rejects_script_fields) ... ok
+test_runtime_uses_recoverable_elevated_network_manager (test_no_network_mutation.RecoverableNetworkMutationTests.test_runtime_uses_recoverable_elevated_network_manager) ... ok
+test_viewer_builds_request_uac_admin (test_no_network_mutation.RecoverableNetworkMutationTests.test_viewer_builds_request_uac_admin) ... ok
+test_inspects_and_replays_lidar_packet (test_pcap_replay.PcapReplayTests.test_inspects_and_replays_lidar_packet) ... ok
+test_rejects_pcapng (test_pcap_replay.PcapReplayTests.test_rejects_pcapng) ... ok
+test_private_issuer_build_and_cache_stay_outside_dist (test_private_release.PrivateReleaseTests.test_private_issuer_build_and_cache_stay_outside_dist) ... ok
+test_frame_round_trip (test_protocol.ProtocolTests.test_frame_round_trip) ... ok
+test_hub_replays_latest_point_frame_to_late_browser (test_protocol.ProtocolTests.test_hub_replays_latest_point_frame_to_late_browser) ... ok
+test_rejects_truncated_frame (test_protocol.ProtocolTests.test_rejects_truncated_frame) ... ok
+test_websocket_lengths (test_protocol.ProtocolTests.test_websocket_lengths) ... ok
+test_interfaces_are_safe_kernel_names (test_ptp.PtpTests.test_interfaces_are_safe_kernel_names) ... ok
+test_rejects_out_of_range_domain (test_ptp.PtpTests.test_rejects_out_of_range_domain) ... ok
+test_validates_generic_ptp_profile (test_ptp.PtpTests.test_validates_generic_ptp_profile) ... ok
+test_arp_request_uses_same_vlan (test_raw_ptc.RawPtcFrameTests.test_arp_request_uses_same_vlan) ... ok
+test_tcp_frame_round_trip_preserves_vlan_and_payload (test_raw_ptc.RawPtcFrameTests.test_tcp_frame_round_trip_preserves_vlan_and_payload) ... ok
+test_accepts_runtime_assets (test_release_audit.PublicReleaseAuditTests.test_accepts_runtime_assets) ... ok
+test_rejects_compressed_and_nested_secrets (test_release_audit.PublicReleaseAuditTests.test_rejects_compressed_and_nested_secrets) ... ok
+test_rejects_invalid_zip (test_release_audit.PublicReleaseAuditTests.test_rejects_invalid_zip) ... ok
+test_rejects_source_debug_and_private_material (test_release_audit.PublicReleaseAuditTests.test_rejects_source_debug_and_private_material) ... ok
+test_native_build_failure_stops_release (test_windows_release.WindowsReleaseTests.test_native_build_failure_stops_release) ... ok
+test_rejects_missing_decoders (test_windows_release.WindowsReleaseTests.test_rejects_missing_decoders) ... ok
+test_rejects_non_x64_decoders (test_windows_release.WindowsReleaseTests.test_rejects_non_x64_decoders) ... ok
+test_single_file_uses_unlicensed_entry_and_admin_manifest (test_windows_release.WindowsReleaseTests.test_single_file_uses_unlicensed_entry_and_admin_manifest) ... ok
+
+----------------------------------------------------------------------
+Ran 95 tests in 3.745s
+
+OK
+[1/4] Checking and building universal native plugins...

@@ -318,7 +318,9 @@ class Application:
         manual_udp_ports: tuple[int, ...] | None = None,
         gateway_only: bool = False,
         shutdown_when_browser_closes: bool = True,
+        license_session=None,
     ) -> None:
+        self.license_session = license_session
         self.started_ns = time.time_ns()
         self.registry = DeviceRegistry()
         self.hub = WebSocketHub()
@@ -331,6 +333,7 @@ class Application:
             self.hub.broadcast_binary,
             self.registry.update_model,
             default_correction_directory=correction_path,
+            authorize=license_session.valid if license_session is not None else None,
         )
         self.pcap_replay = PcapReplay(self.registry, self.native_plugins.feed)
         self.config_path = config_path
@@ -894,6 +897,10 @@ class ViewerHandler(BaseHTTPRequestHandler):
         return str(address), port
 
     def do_GET(self) -> None:  # noqa: N802
+        session = self.server.app.license_session
+        if session is not None and not session.valid():
+            self._json({"error": session.result.reason}, HTTPStatus.FORBIDDEN)
+            return
         path = urlparse(self.path).path
         if path == "/api/status":
             self._json(self.server.app.status())
@@ -933,6 +940,10 @@ class ViewerHandler(BaseHTTPRequestHandler):
 
     def do_POST(self) -> None:  # noqa: N802
         path = urlparse(self.path).path
+        session = self.server.app.license_session
+        if path != "/api/shutdown" and session is not None and not session.valid():
+            self._json({"error": session.result.reason}, HTTPStatus.FORBIDDEN)
+            return
         if path == "/api/shutdown":
             try:
                 caller = ipaddress.ip_address(self.client_address[0])
@@ -1106,7 +1117,7 @@ def bundled_project_root() -> Path:
 
 
 def runtime_config_path(project_root: Path) -> Path:
-    if not getattr(sys, "frozen", False):
+    if not getattr(sys, "frozen", False) and "__compiled__" not in globals():
         return project_root / "config" / "runtime.json"
     if sys.platform == "win32":
         base = Path(os.environ.get("LOCALAPPDATA", Path.home() / "AppData" / "Local"))
@@ -1141,7 +1152,9 @@ def existing_viewer(url: str) -> bool:
         return False
 
 
-def main() -> int:
+def main(license_session=None) -> int:
+    if license_session is not None and not license_session.check(force=True).valid:
+        return 3
     parser = argparse.ArgumentParser(description="Universal LiDAR Viewer MVP")
     parser.add_argument("--host", default="127.0.0.1", help="HTTP bind address")
     parser.add_argument("--port", type=int, default=17777, help="HTTP port")
@@ -1164,12 +1177,24 @@ def main() -> int:
             native_plugin_path(project_root),
             project_root / "corrections",
             args.offline_cache,
+            authorize=license_session.valid if license_session is not None else None,
         )
         write_report(report, args.offline_report)
         return 0 if report["success"] else 4
+    url_host = "127.0.0.1" if args.host == "0.0.0.0" else args.host
+    default_url = f"http://{url_host}:{args.port}"
+    if existing_viewer(default_url):
+        print(f"Universal LiDAR Viewer is already running at {default_url}")
+        if not args.no_browser and webbrowser is not None:
+            webbrowser.open(default_url)
+        return 0
+
     if not args.no_elevation:
         if not ensure_windows_admin() or not ensure_macos_admin():
             print("Administrator permission was declined; automatic packet capture/network adaptation is unavailable.")
+    if not args.no_elevation and (project_root / 'vendor/npcap/npcap-1.90.exe').is_file():
+        from .npcap_bootstrap import ensure_npcap
+        ensure_npcap(project_root)
     config_path = runtime_config_path(project_root)
     saved_config: dict = {}
     if config_path.is_file():
@@ -1201,6 +1226,7 @@ def main() -> int:
         manual_udp_ports=manual_ports,
         gateway_only=args.gateway_only,
         shutdown_when_browser_closes=not args.service_mode,
+        license_session=license_session,
     )
     url_host = "127.0.0.1" if args.host == "0.0.0.0" else args.host
     candidate_ports = [args.port]
@@ -1232,6 +1258,7 @@ def main() -> int:
     app.start()
 
     stopped = threading.Event()
+    license_failed = threading.Event()
 
     def stop_server(*_args: object) -> None:
         if not stopped.is_set():
@@ -1242,6 +1269,16 @@ def main() -> int:
     if hasattr(signal, "SIGTERM"):
         signal.signal(signal.SIGTERM, stop_server)
 
+    def watch_license() -> None:
+        while not stopped.wait(1):
+            if not license_session.valid():
+                license_failed.set()
+                stop_server()
+                return
+
+    if license_session is not None:
+        threading.Thread(target=watch_license, name="license-watch", daemon=True).start()
+
     print(f"Universal LiDAR Viewer {__version__}")
     print(f"Open {url}")
     mode = "automatic/all IPv4 interfaces" if auto_discovery else "manual"
@@ -1251,9 +1288,10 @@ def main() -> int:
     try:
         server.serve_forever(poll_interval=0.3)
     finally:
+        stopped.set()
         app.stop()
         server.server_close()
-    return 0
+    return 3 if license_failed.is_set() else 0
 
 
 if __name__ == "__main__":

@@ -1,0 +1,152 @@
+{
+  "capture_seconds": 3.24966,
+  "packets": 20053,
+  "frames": 30,
+  "frame_interval_ms": {
+    "median": 100.120064,
+    "min": 100.032,
+    "max": 100.256
+  },
+  "median_hz": 9.988007998077189,
+  "last_points": 141166,
+  "rings": 126,
+  "finite_xyz": true,
+  "xyz_min": [
+    0.5727484822273254,
+    -7.263274669647217,
+    -2.4999890327453613
+  ],
+  "xyz_max": [
+    13.621944427490234,
+    8.639443397521973,
+    2.6460506916046143
+  ],
+  "plugins": {
+    "loaded": [
+      {
+        "name": "Hesai SDK 2.0 raw adapter",
+        "vendor": "Hesai",
+        "abi": 2,
+        "feed_calls": 20053,
+        "frames": 30,
+        "last_points": 141166,
+        "last_model": "AT128",
+        "last_nonzero_points": 141166,
+        "last_bounds": {
+          "min": [
+            0.6164320707321167,
+            -7.215665817260742,
+            -2.3798742294311523
+          ],
+          "max": [
+            13.363859176635742,
+            8.512847900390625,
+            2.5968759059906006
+          ]
+        },
+        "last_ring_range": [
+          1,
+          127
+        ],
+        "dropped_frames": 0,
+        "dropped_packets": 0,
+        "decode_errors": 0,
+        "last_decode_error": "",
+        "packet_queue_depth": 0,
+        "last_feed_result": 0,
+        "last_frame_timestamp_ns": 1672531330184651008,
+        "instances": [
+          {
+            "device_id": 3074519227,
+            "device_ip": "192.168.1.201",
+            "calibration": {
+              "state": "sdk_default",
+              "label": "Hesai SDK AT128 nominal correction"
+            }
+          }
+        ]
+      },
+      {
+        "name": "Huawei L306/D3 calibrated adapter",
+        "vendor": "Huawei",
+        "abi": 2,
+        "feed_calls": 0,
+        "frames": 0,
+        "last_points": 0,
+        "last_model": "",
+        "last_nonzero_points": 0,
+        "last_bounds": null,
+        "last_ring_range": null,
+        "dropped_frames": 0,
+        "dropped_packets": 0,
+        "decode_errors": 0,
+        "last_decode_error": "",
+        "packet_queue_depth": 0,
+        "last_feed_result": null,
+        "last_frame_timestamp_ns": 0,
+        "instances": []
+      },
+      {
+        "name": "RoboSense rs_driver adapter",
+        "vendor": "RoboSense",
+        "abi": 2,
+        "feed_calls": 0,
+        "frames": 0,
+        "last_points": 0,
+        "last_model": "",
+        "last_nonzero_points": 0,
+        "last_bounds": null,
+        "last_ring_range": null,
+        "dropped_frames": 0,
+        "dropped_packets": 0,
+        "decode_errors": 0,
+        "last_decode_error": "",
+        "packet_queue_depth": 0,
+        "last_feed_result": null,
+        "last_frame_timestamp_ns": 0,
+        "instances": []
+      },
+      {
+        "name": "Seyond Inno SDK raw adapter",
+        "vendor": "Seyond",
+        "abi": 2,
+        "feed_calls": 0,
+        "frames": 0,
+        "last_points": 0,
+        "last_model": "",
+        "last_nonzero_points": 0,
+        "last_bounds": null,
+        "last_ring_range": null,
+        "dropped_frames": 0,
+        "dropped_packets": 0,
+        "decode_errors": 0,
+        "last_decode_error": "",
+        "packet_queue_depth": 0,
+        "last_feed_result": null,
+        "last_frame_timestamp_ns": 0,
+        "instances": []
+      },
+      {
+        "name": "Velodyne ros-drivers raw adapter",
+        "vendor": "Velodyne",
+        "abi": 2,
+        "feed_calls": 0,
+        "frames": 0,
+        "last_points": 0,
+        "last_model": "",
+        "last_nonzero_points": 0,
+        "last_bounds": null,
+        "last_ring_range": null,
+        "dropped_frames": 0,
+        "dropped_packets": 0,
+        "decode_errors": 0,
+        "last_decode_error": "",
+        "packet_queue_depth": 0,
+        "last_feed_result": null,
+        "last_frame_timestamp_ns": 0,
+        "instances": []
+      }
+    ],
+    "errors": []
+  }
+}

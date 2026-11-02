@@ -22,3 +22,7 @@ config/network-recovery.json
 config/auth_config.csv
 .env
 .env.*
+
+vendor/npcap/*.exe
+
+.DS_Store

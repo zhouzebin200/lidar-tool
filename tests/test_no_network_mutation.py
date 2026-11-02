@@ -17,8 +17,8 @@ class RecoverableNetworkMutationTests(unittest.TestCase):
 
     def test_viewer_builds_request_uac_admin(self):
         build_report = (ROOT / "packaging" / "build_report.py").read_text(encoding="utf-8")
-        build_portable = (ROOT / "packaging" / "build_portable.py").read_text(encoding="utf-8")
-        self.assertIn("--uac-admin", build_report)
+        build_portable = (ROOT / "packaging" / "legacy" / "build_portable.py").read_text(encoding="utf-8")
+        self.assertIn("--windows-uac-admin", build_report)
         self.assertIn("--uac-admin", build_portable)
         for spec in ROOT.glob("*.spec"):
             source = spec.read_text(encoding="utf-8")

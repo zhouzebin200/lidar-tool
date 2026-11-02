@@ -36,6 +36,8 @@ def main() -> int:
     parser.add_argument("--output", type=Path, default=Path("license.key"))
     parser.add_argument("--private-key", type=Path, default=DEFAULT_KEY)
     args = parser.parse_args()
+    if args.days is not None and args.days <= 0:
+        parser.error("--days must be a positive integer")
     machine = args.machine.strip().upper()
     if not MACHINE_PATTERN.fullmatch(machine):
         parser.error("invalid ULV machine code")

@@ -14,6 +14,7 @@
 #include <cstring>
 #include <fstream>
 #include <memory>
+#include <mutex>
 #include <sstream>
 #include <string>
 #include <thread>
@@ -68,6 +69,10 @@ class HesaiAdapter {
         callback_(callback),
         user_data_(user_data) {}
 
+  ~HesaiAdapter() {
+    if (alive_) *alive_ = false;
+  }
+
   bool valid() const { return callback_ != nullptr; }
 
   const char* calibration_status_json() const {
@@ -100,6 +105,10 @@ class HesaiAdapter {
                      source->source_port);
     int incoming_field = packet_field(source->payload, source->payload_size);
 
+    if (pending_factory_ready_.load()) {
+      apply_pending_factory_correction();
+    }
+
     if (parser_.GetGeneralParser() == nullptr) {
       parser_.DecodePacket(frame_, packet);
       if (parser_.GetGeneralParser() == nullptr) return -2;
@@ -118,6 +127,9 @@ class HesaiAdapter {
                      "ULV Hesai calibration unavailable for %s at %s:%u; "
                      "point-cloud elevation may be invalid\n",
                      detected_model_.c_str(), device_ip_.c_str(), ptc_port_);
+      }
+      if (calibration_status_.load() == 6 && !device_ip_.empty()) {
+        start_async_ptc_fetch();
       }
       incoming_field = packet_field(source->payload, source->payload_size);
       if (!firetimes_file_.empty()) parser_.LoadFiretimesFile(firetimes_file_);
@@ -342,6 +354,62 @@ class HesaiAdapter {
                  static_cast<std::streamsize>(correction.size()));
   }
 
+  void start_async_ptc_fetch() {
+    if (device_ip_.empty() || ptc_in_progress_.exchange(true)) return;
+    std::string ip = device_ip_;
+    uint16_t port = ptc_port_;
+    std::string model = detected_model_;
+    std::string cache_path = correction_cache_file_;
+    auto alive = alive_;
+    std::thread([this, alive, ip, port, model, cache_path]() {
+      PtcClient client(ip, port, false, PtcMode::tcp, 1, "", "", "", 1000, 1000, 2.5f, 0);
+      const auto deadline = std::chrono::steady_clock::now() + std::chrono::milliseconds(2500);
+      while (!client.IsOpen() && std::chrono::steady_clock::now() < deadline) {
+        if (!*alive) return;
+        std::this_thread::sleep_for(std::chrono::milliseconds(50));
+      }
+      if (!client.IsOpen() || !*alive) {
+        if (*alive) ptc_in_progress_.store(false);
+        return;
+      }
+      u8Array_t correction;
+      const int query_res = model == "JT16"
+          ? client.JT16GetCorrectionInfo(correction)
+          : client.GetCorrectionInfo(correction);
+      if (query_res == 0 && !correction.empty() && *alive) {
+        if (!cache_path.empty()) {
+          std::ofstream output(cache_path, std::ios::binary | std::ios::trunc);
+          if (output.is_open()) {
+            output.write(reinterpret_cast<const char*>(correction.data()), correction.size());
+          }
+        }
+        {
+          std::lock_guard<std::mutex> lock(pending_mutex_);
+          pending_factory_correction_.assign(correction.begin(), correction.end());
+          pending_factory_ready_.store(true);
+        }
+      }
+      if (*alive) ptc_in_progress_.store(false);
+    }).detach();
+  }
+
+  void apply_pending_factory_correction() {
+    std::vector<uint8_t> corr;
+    {
+      std::lock_guard<std::mutex> lock(pending_mutex_);
+      if (pending_factory_ready_.exchange(false)) {
+        corr = std::move(pending_factory_correction_);
+      }
+    }
+    if (!corr.empty()) {
+      if (parser_.LoadCorrectionString(reinterpret_cast<const char*>(corr.data()), corr.size()) == 0) {
+        calibration_status_.store(1);
+        configure_at128_fields(corr.data(), corr.size());
+        std::fprintf(stderr, "ULV Hesai async factory calibration applied (%zu bytes)\n", corr.size());
+      }
+    }
+  }
+
   bool load_pandar40_default_correction() {
     if (detected_model_ != "Pandar40" && detected_model_ != "Pandar40P" &&
         detected_model_ != "Pandar40M") {
@@ -547,6 +615,11 @@ class HesaiAdapter {
   uint8_t assembled_fields_ = 0;
   std::atomic<uint64_t> sequence_{0};
   std::atomic<int> calibration_status_{0};
+  std::shared_ptr<std::atomic<bool>> alive_ = std::make_shared<std::atomic<bool>>(true);
+  std::atomic<bool> ptc_in_progress_{false};
+  std::atomic<bool> pending_factory_ready_{false};
+  std::vector<uint8_t> pending_factory_correction_;
+  std::mutex pending_mutex_;
   // Preserve the complete spatial/ring coverage with a uniform stride while
   // keeping the browser upload below the level that stalls integrated GPUs.
   static constexpr size_t kMaxDisplayPoints = 180000;

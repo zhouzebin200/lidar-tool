@@ -1,0 +1,30 @@
+{
+  "deleted_obsolete_releases": [
+    "Lijian-LidarTool-Windows-Portable.zip",
+    "砺见智行激光雷达测试工具-Windows绿色免安装版.zip",
+    "archive",
+    "砺见智行激光雷达测试工具-Windows绿色免安装版.zip.sha256",
+    "Lijian-LidarTool-Windows-Portable.zip.sha256",
+    "customer",
+    "Lijian-LidarTool-Portable"
+  ],
+  "retained_release": "dist/unlicensed-x64/Lijian-LidarTool-Windows-x64.exe",
+  "retained_sha256": "df5a1bd33853170200359715c2b6d09f1d514ecaf0979f5979396378d08e0ea8",
+  "moves": {
+    "root_history": "docs/history/",
+    "full_usage_guide": "docs/guides/完整使用说明.md",
+    "wasm_design": "docs/design/",
+    "browser_tests": "tests/browser/",
+    "manual_harness": "tests/manual/",
+    "historical_packagers": "packaging/legacy/"
+  },
+  "verification": {
+    "structural_python_tests": 13,
+    "browser_regressions": 2,
+    "manual_harness_http": "passed",
+    "current_documentation_links": "passed",
+    "current_release_audit": "passed",
+    "windows_full_suite_this_round": "not run; PD suspended"
+  },
+  "runtime_code_changed": false
+}

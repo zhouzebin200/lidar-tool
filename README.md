@@ -1,29 +1,60 @@
-# 砺见智行工作室激光雷达测试工具
+# 砺见智行激光雷达测试工具
 
-[更新说明](CHANGELOG.md) · [开发与维护 Review](REVIEW.md)
+[更新说明](docs/history/CHANGELOG.md) · [开发与维护 Review](docs/history/REVIEW-2026-09-27.md)
 
-一个面向 RoboSense、Hesai、Huawei L306/D3、Velodyne 和 Seyond/Innovusion 雷达的跨平台实时点云查看器，已集成检测报告工作台。运行层零第三方 Python 依赖，包含本地 HTTP/WebSocket 服务、GPU 点云界面、UDP 设备发现、运行时网络配置和厂商原生解码插件。报告使用同一个进程中的设备、点云和网页/PTC 数据；不需要启动独立报告程序。
+面向 RoboSense、Hesai、Huawei、Velodyne 和 Seyond/Innovusion 雷达的跨平台实时点云查看器，集成检测报告工作台。支持 Windows x64 独立免安装运行、macOS 自动网卡自适应与 PCAP 回放，并提供独立 ROS1/ROS2 工作区。
 
-当前 Windows 单文件程序由 `packaging/build_report.py` 构建，名称为 `砺见智行工作室激光雷达测试工具.exe`。项目目录、数据流、构建和历史产物说明见 [`docs/项目结构与维护.md`](docs/项目结构与维护.md)。
+## 直接使用
 
-公网部署、浏览器 WASM、本地轻量抓包桥接和源码保护的目标架构见 [`docs/WASM_PUBLIC_DEPLOYMENT_DESIGN.md`](docs/WASM_PUBLIC_DEPLOYMENT_DESIGN.md)。
+当前成品：[`dist/unlicensed-x64/Lijian-LidarTool-Windows-x64.exe`](dist/unlicensed-x64/Lijian-LidarTool-Windows-x64.exe)。
 
-项目同时提供 OpenWrt 雷达网关包：路由器网页端可配置自适应雷达 UDP 转发、USB 标准 PCAP 录制/自动分卷，以及 IEEE 1588 PTP 主/从时钟。详见 [`openwrt/README.md`](openwrt/README.md)。
+复制这一个 EXE 到 Windows 10/11 x64 电脑，双击并允许管理员权限。无需 Python、无需软件许可证；已内置网页、五厂商解码器、标定文件和 Npcap 1.90 离线安装向导。Npcap 安装仍需用户确认其官方协议，检测与安装过程不需要联网下载。旧发布包已删除。
 
-## 立即运行
+## 从哪里开始
 
-需要 Python 3.10 或更高版本。
+| 需要做什么 | 入口 |
+| --- | --- |
+| 运行源码 | `run.py` 或 `start.ps1` / `start.sh` |
+| 构建当前无授权 EXE | `python packaging/build_unlicensed.py` |
+| 构建授权版 | `python packaging/build_report.py` |
+| 了解代码和维护方式 | [项目结构与维护](docs/项目结构与维护.md) |
+| 查阅使用说明、配置和 API | [完整使用说明](docs/guides/完整使用说明.md) |
+| 运行测试 | [测试说明](tests/README.md) |
+| 查阅全部文档 | [文档目录](docs/README.md) |
 
-Windows：
+## 目录分工
 
-```powershell
-./start.ps1
+```text
+ulv/          Python 服务、抓包、协议、设备和运行时逻辑
+web/          点云、报告、网关的浏览器界面
+native/       C++ 解码适配器源码和 C ABI
+corrections/  随软件提供的标称标定
+config/       静态型号配置与本机运行配置
+plugins/      编译后的解码 DLL（生成物）
+third_party/  厂商 SDK 源码（本地依赖）
+vendor/       离线安装器等厂商二进制依赖
+licensing/    授权管理源码和独立保管的私有数据
+packaging/    发布构建、内容审计与 legacy/ 历史工具
+scripts/      SDK 获取、原生编译、PCAP 验证工具
+tests/        Python 回归；browser/ 浏览器测试；manual/ 手动工具
+docs/         指南、设计、维护、历史记录和测试证据
+build/        中间产物和测试临时文件（不交付）
+dist/         当前交付文件（不存旧版本）
+tmp/          本地临时文件（不交付）
 ```
+
+## 跨平台运行
 
 Linux/macOS：
 
 ```sh
 ./start.sh
+```
+
+Windows：
+
+```powershell
+.\start.ps1
 ```
 
 启动后访问 <http://127.0.0.1:17777>。真实雷达流量到达已配置的监听端口后会自动识别并显示。
@@ -172,3 +203,9 @@ UniversalLidarViewer.exe --offline-test D:/lidardata --offline-report offline-re
 ## E2 网页查看器
 
 已接入用户提供的 RoboSense RSE2 SDK 协议与标定，支持在线数据和 PCAP 回放，无需 ROS。需要重建 RoboSense 原生插件；[E2 使用与验证说明](docs/E2_VIEWER.md)。
+
+## 构建与交付说明
+
+源码运行需要 Python 3.10+。构建当前 Windows EXE 需要 Windows x64 Python、Nuitka 4.3、项目要求的解码 DLL 和官方 Npcap 安装器，详见 [打包说明](packaging/README.md)。
+
+`licensing/private/`、签发记录、许可证和本机网络状态不属于客户交付内容。Npcap 免费版不支持静默安装；随产品对外分发需取得相应 OEM 权利，见 [Npcap 官方说明](https://npcap.com/oem/redist)。

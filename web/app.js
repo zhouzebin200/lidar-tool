@@ -24,6 +24,7 @@ const state = {
   lastX: 0,
   lastY: 0,
   activeDevice: null,
+  selectedDevice: null,
   configLoaded: false,
   pcapUploading: false,
   gatewayLoaded: false,
@@ -201,6 +202,9 @@ function viewProjection() {
 function uploadFrame(buffer) {
   const view = new DataView(buffer);
   if (view.byteLength < 28 || view.getUint32(0, true) !== 0x31564c55) return;
+  const deviceId = view.getUint32(8, true);
+  if (state.selectedDevice !== null && deviceId !== state.selectedDevice) return;
+  if (state.selectedDevice === null) state.selectedDevice = deviceId;
   const count = view.getUint32(16, true);
   if (view.byteLength !== 28 + count * 20) return;
   let zMin = Infinity, zMax = -Infinity, intensityMax = 0;
@@ -223,7 +227,7 @@ function uploadFrame(buffer) {
     gl.bufferData(gl.ARRAY_BUFFER, new Uint8Array(buffer, 28), gl.DYNAMIC_DRAW);
   }
   state.points = count;
-  state.activeDevice = view.getUint32(8, true);
+  state.activeDevice = deviceId;
   state.lastFrameAt = performance.now();
   state.frameCounter++;
   const indicator = $("socketState");
@@ -302,16 +306,37 @@ function renderDevices(devices) {
   $("deviceCount").textContent = devices.length;
   const list = $("deviceList");
   if (!devices.length) { list.innerHTML = '<div class="empty-devices">等待雷达流量。自动模式会分析 IP、端口和 VLAN，无需预先填写。</div>'; return; }
+  if (!devices.some(device => device.id === state.selectedDevice)) {
+    state.selectedDevice = devices[0].id;
+    state.activeDevice = null;
+    state.points = 0;
+  }
   list.innerHTML = devices.map(device => `
-    <article class="device-card ${device.state}">
+    <article class="device-card ${device.state}${device.id === state.selectedDevice ? " selected" : ""}">
       <span class="device-vendor">${escapeHtml(device.vendor)} · ${device.state}</span>
       <h3 title="${escapeHtml(device.model)}">${escapeHtml(device.model)}</h3>
       <div class="device-meta"><span>${escapeHtml(device.ip)}</span><span>${device.packets.toLocaleString()} pkt</span></div>
+      <button type="button" class="device-view-button" data-device-id="${device.id}">${device.id === state.selectedDevice ? "正在查看点云" : "查看点云"}</button>
+      <a class="device-web-link" href="http://${escapeHtml(device.ip)}/" target="_blank" rel="noopener noreferrer">打开雷达控制页 ↗</a>
       <div class="confidence"><span style="width:${Math.round(device.confidence*100)}%"></span></div>
     </article>`).join("");
-  const first = devices[0];
-  $("activeModel").textContent = `${first.vendor} · ${first.model}`;
+  const selected = devices.find(device => device.id === state.selectedDevice);
+  $("activeModel").textContent = `${selected.vendor} · ${selected.model}`;
 }
+
+$("deviceList").addEventListener("click", event => {
+  const button = event.target.closest("[data-device-id]");
+  if (!button) return;
+  state.selectedDevice = Number(button.dataset.deviceId);
+  state.activeDevice = null;
+  state.points = 0;
+  state.lastFrameAt = 0;
+  $("pointCount").textContent = "0";
+  $("emptyState").classList.remove("hidden");
+  $("deviceList").querySelectorAll(".device-card").forEach(card => card.classList.toggle("selected", card.contains(button)));
+  $("deviceList").querySelectorAll(".device-view-button").forEach(item => item.textContent = item === button ? "正在查看点云" : "查看点云");
+  $("activeModel").textContent = button.closest(".device-card").querySelector("h3").textContent;
+});
 
 function escapeHtml(value) {
   return String(value).replace(/[&<>'"]/g, char => ({"&":"&amp;","<":"&lt;",">":"&gt;","'":"&#39;",'"':"&quot;"})[char]);

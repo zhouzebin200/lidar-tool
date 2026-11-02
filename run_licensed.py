@@ -5,15 +5,16 @@ from __future__ import annotations
 
 import sys
 
-from ulv.licensing import find_license, install_license, machine_code, show_license_error
+from ulv.licensing import LicenseSession, install_license, machine_code, show_license_error, write_machine_code_file
 
 
 def main() -> int:
     if "--machine-code" in sys.argv:
         print(machine_code())
+        write_machine_code_file()
         return 0
     if "--license-status" in sys.argv:
-        result = find_license()
+        result = LicenseSession().check()
         print(f"{result.reason}: {result.path or '-'}")
         return 0 if result.valid else 3
     if "--install-license" in sys.argv:
@@ -24,12 +25,13 @@ def main() -> int:
         result = install_license(sys.argv[index + 1])
         print(f"{result.reason}: {result.path or '-'}")
         return 0 if result.valid else 3
-    result = find_license()
+    session = LicenseSession()
+    result = session.check()
     if not result.valid:
         show_license_error(result.reason)
         return 3
     from ulv.server import main as server_main
-    return server_main()
+    return server_main(license_session=session)
 
 
 if __name__ == "__main__":

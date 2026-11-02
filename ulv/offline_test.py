@@ -44,7 +44,7 @@ def pcap_packets(path: Path):
             yield seconds * 1_000_000_000 + fraction * fraction_ns, frame
 
 
-def test_pcap(path: Path, plugins: Path, corrections: Path, cache: Path) -> dict:
+def test_pcap(path: Path, plugins: Path, corrections: Path, cache: Path, authorize=None) -> dict:
     registry = DeviceRegistry()
     output_frames = 0
 
@@ -58,12 +58,15 @@ def test_pcap(path: Path, plugins: Path, corrections: Path, cache: Path) -> dict
         registry.update_model,
         calibration_cache_directory=cache,
         default_correction_directory=corrections / "hesai",
+        authorize=authorize,
     )
     records = accepted = 0
     vendors: set[str] = set()
     error = ""
     try:
         for timestamp_ns, frame in pcap_packets(path):
+            if authorize is not None and not authorize():
+                raise ValueError("许可证已失效，停止离线解码")
             records += 1
             packet = parse_ethernet_udp(frame)
             if packet is None or not packet.payload:
@@ -121,15 +124,15 @@ def test_pcap(path: Path, plugins: Path, corrections: Path, cache: Path) -> dict
     return result
 
 
-def run_offline_test(path: Path, plugins: Path, corrections: Path, cache: Path | None = None) -> dict:
+def run_offline_test(path: Path, plugins: Path, corrections: Path, cache: Path | None = None, authorize=None) -> dict:
     pcaps = sorted(path.rglob("*.pcap")) if path.is_dir() else [path]
     if cache is not None:
         cache.mkdir(parents=True, exist_ok=True)
-        results = [test_pcap(pcap, plugins, corrections, cache / pcap.stem) for pcap in pcaps]
+        results = [test_pcap(pcap, plugins, corrections, cache / pcap.stem, authorize) for pcap in pcaps]
     else:
         with tempfile.TemporaryDirectory(prefix="ulv-isolated-cache-") as temporary:
             root = Path(temporary)
-            results = [test_pcap(pcap, plugins, corrections, root / pcap.stem) for pcap in pcaps]
+            results = [test_pcap(pcap, plugins, corrections, root / pcap.stem, authorize) for pcap in pcaps]
     return {
         "mode": "offline-isolated-pcap-test",
         "input": str(path),

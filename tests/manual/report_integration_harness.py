@@ -1,6 +1,6 @@
 """Manual UI test harness: synthetic frames, isolated config, no network capture.
 
-Run from project root: python tests/report_integration_harness.py
+Run from project root: python tests/manual/report_integration_harness.py
 The production build does not include this harness or its synthetic data.
 """
 from pathlib import Path
@@ -10,7 +10,7 @@ import tempfile
 import threading
 import time
 
-ROOT=Path(__file__).resolve().parents[1]
+ROOT=Path(__file__).resolve().parents[2]
 sys.path.insert(0,str(ROOT))
 from ulv.server import Application, ViewerHTTPServer
 from ulv.detection import Detection
