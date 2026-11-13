@@ -1,4 +1,5 @@
 #include "ulv_decoder_plugin.h"
+#include "ulv_plugin_utils.h"
 
 #include <UdpParser/udp_parser.h>
 #include <ptc_client.h>
@@ -24,36 +25,8 @@ using namespace hesai::lidar;
 
 namespace {
 
-std::string json_string(const char* json, const char* key) {
-  if (json == nullptr) return {};
-  const std::string source(json);
-  const std::string marker = std::string("\"") + key + "\"";
-  size_t position = source.find(marker);
-  if (position == std::string::npos) return {};
-  position = source.find(':', position + marker.size());
-  if (position == std::string::npos) return {};
-  position = source.find('"', position + 1);
-  if (position == std::string::npos) return {};
-  const size_t end = source.find('"', position + 1);
-  return end == std::string::npos ? std::string() : source.substr(position + 1, end - position - 1);
-}
-
-uint32_t json_u32(const char* json, const char* key, uint32_t fallback) {
-  if (json == nullptr) return fallback;
-  const std::string source(json);
-  const std::string marker = std::string("\"") + key + "\"";
-  size_t position = source.find(marker);
-  if (position == std::string::npos) return fallback;
-  position = source.find(':', position + marker.size());
-  if (position == std::string::npos) return fallback;
-  position++;
-  while (position < source.size() && std::isspace(static_cast<unsigned char>(source[position]))) position++;
-  try {
-    return static_cast<uint32_t>(std::stoul(source.substr(position)));
-  } catch (...) {
-    return fallback;
-  }
-}
+using ulv_plugin_utils::json_string;
+using ulv_plugin_utils::json_u32;
 
 class HesaiAdapter {
  public:
@@ -203,7 +176,7 @@ class HesaiAdapter {
 
   bool load_correction_from_file(const std::string& path, int status) {
     if (path.empty()) return false;
-    std::ifstream input(path, std::ios::binary);
+    std::ifstream input = ulv_plugin_utils::open_ifstream_utf8(path);
     if (!input.is_open()) return false;
     const std::string correction((std::istreambuf_iterator<char>(input)),
                                  std::istreambuf_iterator<char>());
@@ -335,8 +308,7 @@ class HesaiAdapter {
 
   bool load_sdk_default_correction() {
     if (fallback_correction_file_.empty()) return false;
-    if (detected_model_ != "AT128" && detected_model_ != "PandarQT" &&
-        detected_model_ != "PandarQT64" && detected_model_ != "QT64") {
+    if (detected_model_ != "AT128" && detected_model_ != "AT128P") {
       return false;
     }
     return load_correction_from_file(fallback_correction_file_, 6);
@@ -344,7 +316,7 @@ class HesaiAdapter {
 
   void save_correction_cache(const u8Array_t& correction) {
     if (correction_cache_file_.empty() || correction.empty()) return;
-    std::ofstream output(correction_cache_file_, std::ios::binary | std::ios::trunc);
+    std::ofstream output = ulv_plugin_utils::open_ofstream_utf8(correction_cache_file_);
     if (!output.is_open()) {
       std::fprintf(stderr, "ULV Hesai could not write calibration cache %s\n",
                    correction_cache_file_.c_str());
@@ -378,7 +350,7 @@ class HesaiAdapter {
           : client.GetCorrectionInfo(correction);
       if (query_res == 0 && !correction.empty() && *alive) {
         if (!cache_path.empty()) {
-          std::ofstream output(cache_path, std::ios::binary | std::ios::trunc);
+          std::ofstream output = ulv_plugin_utils::open_ofstream_utf8(cache_path);
           if (output.is_open()) {
             output.write(reinterpret_cast<const char*>(correction.data()), correction.size());
           }

@@ -5,6 +5,7 @@
 // are intentionally not linked so the viewer remains a portable executable.
 
 #include "ulv_decoder_plugin.h"
+#include "ulv_plugin_utils.h"
 
 #include <algorithm>
 #include <atomic>
@@ -37,36 +38,8 @@ uint16_t little_u16(const uint8_t* source) {
          (static_cast<uint16_t>(source[1]) << 8u);
 }
 
-std::string json_string(const char* json, const char* key) {
-  if (json == nullptr) return {};
-  const std::string source(json);
-  const std::string marker = std::string("\"") + key + "\"";
-  size_t position = source.find(marker);
-  if (position == std::string::npos) return {};
-  position = source.find(':', position + marker.size());
-  if (position == std::string::npos) return {};
-  position = source.find('"', position + 1);
-  if (position == std::string::npos) return {};
-  const size_t end = source.find('"', position + 1);
-  return end == std::string::npos ? std::string() : source.substr(position + 1, end - position - 1);
-}
-
-uint32_t json_u32(const char* json, const char* key, uint32_t fallback) {
-  if (json == nullptr) return fallback;
-  const std::string source(json);
-  const std::string marker = std::string("\"") + key + "\"";
-  size_t position = source.find(marker);
-  if (position == std::string::npos) return fallback;
-  position = source.find(':', position + marker.size());
-  if (position == std::string::npos) return fallback;
-  position++;
-  while (position < source.size() && std::isspace(static_cast<unsigned char>(source[position]))) position++;
-  try {
-    return static_cast<uint32_t>(std::stoul(source.substr(position)));
-  } catch (...) {
-    return fallback;
-  }
-}
+using ulv_plugin_utils::json_string;
+using ulv_plugin_utils::json_u32;
 
 std::string join_path(const std::string& directory, const std::string& name) {
   if (directory.empty()) return name;
@@ -174,7 +147,7 @@ bool bool_value(const std::string& source, const std::string& key, bool fallback
 }
 
 bool read_file(const std::string& path, std::string* contents) {
-  std::ifstream input(path, std::ios::binary);
+  std::ifstream input = ulv_plugin_utils::open_ifstream_utf8(path);
   if (!input) return false;
   std::ostringstream stream;
   stream << input.rdbuf();

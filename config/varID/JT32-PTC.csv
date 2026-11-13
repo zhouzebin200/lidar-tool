@@ -1,6 +1,0 @@
-GroupID,Index,Get,Set,GroupName,VarName,VarLen,VarType,Description,IntegrityCheck,Permission,DefaultValue,CurrentValue,Options,OptionDescription,SetCoefficient,FunctionModule,Must,Unit,Coefficient,SetIndex,TimerUpdate
-0,Lidar Info,Lidar Info,,,,,,,,,,,,,,,,,,,
-0,Lidar Function,Lidar Function,,,,,,,,,,,,,,,,,,,
-0,Operation Statistics,Availability,,,,,,,,,,,,,,,,,,,
-1,10,0xFF,,,SN,32,SN,,,0,xxxxxxxx,xxxxxxxx,,,,1_1_1_1,,,,,1
-9,0,,0x10,,Restart,,,Restart,,2,,,,,,,1,,,,

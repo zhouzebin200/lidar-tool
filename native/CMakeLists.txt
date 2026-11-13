@@ -1,4 +1,5 @@
 cmake_minimum_required(VERSION 3.16)
+set(CMAKE_POLICY_VERSION_MINIMUM 3.5 CACHE STRING "Allow third-party SDKs with older cmake_minimum_required")
 project(ulv_native_plugins LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 17)
@@ -82,6 +83,14 @@ if(EXISTS "${HESAI_SDK_ROOT}/libhesai/UdpParser/udp_parser.h")
     "${HESAI_SDK_ROOT}/libhesai"
   )
   target_link_libraries(ulv_hesai PRIVATE udpParser_lib ptcClient_lib)
+  if(APPLE)
+    target_compile_options(ulv_hesai PRIVATE
+      -include "${CMAKE_CURRENT_LIST_DIR}/include/macos_socket_compat.h")
+    if(TARGET ptcClient_lib)
+      target_compile_options(ptcClient_lib PRIVATE
+        -include "${CMAKE_CURRENT_LIST_DIR}/include/macos_socket_compat.h")
+    endif()
+  endif()
   if(WIN32)
     target_link_libraries(ulv_hesai PRIVATE ws2_32)
   endif()
@@ -99,6 +108,9 @@ if(EXISTS "${INNO_SDK_ROOT}/src/sdk_common/inno_lidar_packet_utils.h")
   # Robin/HB AngleHV table when compact packets require it.
   set(MAKE_SHARED OFF CACHE BOOL "Link Seyond SDK statically into the adapter" FORCE)
   add_subdirectory("${INNO_SDK_ROOT}/src" "${CMAKE_BINARY_DIR}/inno-sdk" EXCLUDE_FROM_ALL)
+  set_target_properties(innolidarsdkclient innolidarsdkcommon innolidarutils PROPERTIES
+    ARCHIVE_OUTPUT_DIRECTORY "${CMAKE_BINARY_DIR}/inno-sdk-lib"
+  )
   add_library(ulv_seyond SHARED plugins/seyond_adapter.cpp)
   target_include_directories(ulv_seyond PRIVATE
     "${CMAKE_CURRENT_LIST_DIR}/include"
@@ -114,7 +126,9 @@ if(EXISTS "${INNO_SDK_ROOT}/src/sdk_common/inno_lidar_packet_utils.h")
       # expanding the header to 72 bytes and reading the packet type at the
       # wrong offset (Robin compact type 13 becomes type 0).
       foreach(inno_target ulv_seyond innolidarsdkclient innolidarsdkcommon innolidarutils)
-        target_compile_options(${inno_target} PRIVATE -mno-ms-bitfields)
+        target_compile_options(${inno_target} PRIVATE
+          -mno-ms-bitfields
+          -include "${CMAKE_CURRENT_LIST_DIR}/include/win_zig_inno_compat.h")
       endforeach()
     endif()
   elseif(UNIX)

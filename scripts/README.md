@@ -1,10 +1,10 @@
-# 开发辅助脚本
+# 构建与验证脚本
 
-| 阶段 | 工具 |
+| 脚本 | 用途 |
 | --- | --- |
-| 获取 SDK | `fetch_sdks.ps1` |
-| 适配厂商 SDK | `prepare_hesai_sdk.ps1`、`prepare_seyond_sdk.ps1` |
-| 编译 Windows 原生 DLL | `build_native_portable.py`、`build_native_zig.ps1` |
-| 验证真实 PCAP | `validate_pcap.py` |
+| `build_all.sh` | 一键构建 macOS 原生应用（`.app` + `.dylib`）与 Windows x64 绿色包（Zig 交叉编译 `.exe` + `.dll`） |
+| `run_e2e_tests.sh` | 构建并运行 C++ 单元测试、无头 UI 测试及 PCAP 回归验证 |
+| `fetch_sdks.ps1` | 在缺少 `third_party/` 时拉取第三方雷达 SDK 源码 |
+| `prepare_hesai_sdk.ps1` / `prepare_seyond_sdk.ps1` | 第三方 SDK 初始化适配脚本 |
 
-在项目根目录执行这些工具。原生编译细节见 [native/README.md](../native/README.md)，成品发布入口放在 [packaging/](../packaging/README.md)。
+在项目根目录执行，如 `./scripts/build_all.sh all`。

@@ -1,6 +1,7 @@
 // Huawei L306 / D3 decoder for the 1021-byte UDP protocol used by demo_ws_192.
 
 #include "ulv_decoder_plugin.h"
+#include "ulv_plugin_utils.h"
 #include "huawei_l306_calibration.h"
 
 #include <atomic>
@@ -35,20 +36,7 @@ int16_t signed_big_i16(const uint8_t* source) {
   return static_cast<int16_t>(big_u16(source));
 }
 
-uint32_t json_u32(const char* json, const char* key, uint32_t fallback) {
-  if (json == nullptr) return fallback;
-  const std::string source(json);
-  const std::string marker = std::string("\"") + key + "\"";
-  size_t position = source.find(marker);
-  if (position == std::string::npos) return fallback;
-  position = source.find(':', position + marker.size());
-  if (position == std::string::npos) return fallback;
-  try {
-    return static_cast<uint32_t>(std::stoul(source.substr(position + 1)));
-  } catch (...) {
-    return fallback;
-  }
-}
+using ulv_plugin_utils::json_u32;
 
 bool is_l306_packet(const uint8_t* data, size_t size) {
   return data != nullptr && size == kPacketSize &&

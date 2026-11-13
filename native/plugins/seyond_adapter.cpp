@@ -1,4 +1,5 @@
 #include "ulv_decoder_plugin.h"
+#include "ulv_plugin_utils.h"
 
 #include "sdk_client/inno_lidar_packet_v1_adapt.h"
 #include "sdk_common/inno_lidar_api.h"
@@ -19,34 +20,8 @@ namespace {
 static_assert(sizeof(InnoCommonHeader) == 26, "Seyond common header must match the wire ABI");
 static_assert(sizeof(InnoDataPacket) == 70, "Seyond data header must match the wire ABI");
 
-std::string json_string(const char* json, const char* key) {
-  if (json == nullptr) return {};
-  const std::string source(json);
-  const std::string marker = std::string("\"") + key + "\"";
-  size_t position = source.find(marker);
-  if (position == std::string::npos) return {};
-  position = source.find(':', position + marker.size());
-  if (position == std::string::npos) return {};
-  position = source.find('"', position + 1);
-  if (position == std::string::npos) return {};
-  const size_t end = source.find('"', position + 1);
-  return end == std::string::npos ? std::string() : source.substr(position + 1, end - position - 1);
-}
-
-uint32_t json_u32(const char* json, const char* key, uint32_t fallback) {
-  if (json == nullptr) return fallback;
-  const std::string source(json);
-  const std::string marker = std::string("\"") + key + "\"";
-  size_t position = source.find(marker);
-  if (position == std::string::npos) return fallback;
-  position = source.find(':', position + marker.size());
-  if (position == std::string::npos) return fallback;
-  try {
-    return static_cast<uint32_t>(std::stoul(source.substr(position + 1)));
-  } catch (...) {
-    return fallback;
-  }
-}
+using ulv_plugin_utils::json_string;
+using ulv_plugin_utils::json_u32;
 
 const char* model_for_type(uint8_t lidar_type) {
   switch (lidar_type) {
@@ -270,7 +245,7 @@ class SeyondAdapter {
 
   bool load_angle_table_file(const std::string& path) {
     if (path.empty()) return false;
-    std::ifstream input(path, std::ios::binary);
+    std::ifstream input = ulv_plugin_utils::open_ifstream_utf8(path);
     if (!input.is_open()) return false;
     angle_table_.assign(std::istreambuf_iterator<char>(input), std::istreambuf_iterator<char>());
     if (angle_table_.size() < sizeof(InnoDataPacket)) {
@@ -288,7 +263,7 @@ class SeyondAdapter {
 
   void write_angle_table_cache() const {
     if (cache_file_.empty() || angle_table_.empty()) return;
-    std::ofstream output(cache_file_, std::ios::binary | std::ios::trunc);
+    std::ofstream output = ulv_plugin_utils::open_ofstream_utf8(cache_file_);
     if (output.is_open()) {
       output.write(reinterpret_cast<const char*>(angle_table_.data()),
                    static_cast<std::streamsize>(angle_table_.size()));
